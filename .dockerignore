@@ -1,0 +1,63 @@
+# ============================================================
+# Исключения для Docker build context (корень репозитория)
+# Уменьшает размер контекста и ускоряет сборку
+# ============================================================
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE и ОС
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Документация и прочее (не нужны в образе)
+*.md
+!README.md
+
+# Локальные env (секреты не должны попадать в образ)
+.env
+.env.*
+!.env.example
+
+# Тесты и линтеры (в production-образ не копируем)
+**/tests
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/pytest.ini
+**/.pytest_cache
+**/.coverage
+**/htmlcov
+
+# Node (frontend)
+node_modules
+npm-debug.log
+frontend/dist
+
+# Python (backend)
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+env
+backend/app.db
+backend/*.db
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Логи и временные файлы
+*.log
+tmp
+temp
+.cache

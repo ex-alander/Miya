@@ -1,0 +1,99 @@
+﻿========================================
+PROJECT STRUCTURE (CLEAN)
+========================================
+
+|-- [.cursor]/
+|   +-- [workflows]/
+|-- [backend]/
+|   |-- [alembic]/
+|   |   |-- [versions]/
+|   |   |   |-- 1e7376863fcd_create_shop_system.py
+|   |   |   |-- 20260119_0001_create_users.py
+|   |   |   |-- 5fbb19035a31_create_decks_table.py
+|   |   |   |-- 7a23ac4a6376_create_cards_table.py
+|   |   |-- env.py
+|   |-- [app]/
+|   |   |-- [api]/
+|   |   |   |   |-- __init__.py
+|   |   |   |   |-- ai.py
+|   |   |   |   |-- cards.py
+|   |   |   |   |-- shop.py
+|   |   |   |   |-- study.py
+|   |   |   |-- __init__.py
+|   |   |   +-- router.py
+|   |   |   |-- logging_config.py
+|   |   |   +-- security.py
+|   |   |   |-- achievement.py
+|   |   |   |-- base.py
+|   |   |   |-- deck.py
+|   |   |   |-- shop.py
+|   |   |   |-- base.py
+|   |   |   |-- seed_shop.py
+|   |   |   +-- session.py
+|   |   |   |-- __init__.py
+|   |   |   |-- achievement.py
+|   |   |   |-- deck.py
+|   |   |   |-- shop_item.py
+|   |   |   |-- __init__.py
+|   |   |   |-- ai.py
+|   |   |   |-- card.py
+|   |   |   |-- shop.py
+|   |   |   |-- token.py
+|   |   |   +-- user.py
+|   |   |-- [services]/
+|   |   |   |-- ai_agent.py
+|   |   |   |-- boosts.py
+|   |   |-- __init__.py
+|   |   +-- main.py
+|   |-- [tests]/
+|   |   +-- __init__.py
+|   |-- .dockerignore
+|   |-- AI_SETUP.md
+|   |-- entrypoint.sh
+|   |-- requirements.txt
+|-- [frontend]/
+|   |-- [dist]/
+|   |-- [node_modules]/
+|   |   |-- [components]/
+|   |   |   |-- [auth]/
+|   |   |   |   |-- CardFlip.tsx
+|   |   |   |   |-- CardList.css
+|   |   |   |-- [decks]/
+|   |   |   |   |-- DeckForm.tsx
+|   |   |   |   |-- DeckList.css
+|   |   |   |   |-- CardReview.css
+|   |   |   |   |-- SessionSummary.tsx
+|   |   |   |   +-- StudyProgress.tsx
+|   |   |   |-- [ui]/
+|   |   |   |   |-- Button.css
+|   |   |   |   |-- Button.tsx
+|   |   |   |   |-- ConfirmDialog.css
+|   |   |   |   |-- ErrorDisplay.css
+|   |   |   |   |-- Grid.css
+|   |   |   |   |-- Input.tsx
+|   |   |   |   |-- LoadingSpinner.tsx
+|   |   |   |   |-- Modal.css
+|   |   |   |   |-- RichTextEditor.css
+|   |   |   |   |-- StatCard.css
+|   |   |   |   +-- ToastProvider.tsx
+|   |   |   +-- ErrorBoundary.tsx
+|   |   |-- [hooks]/
+|   |   |   |-- AchievementsPage.css
+|   |   |   |-- AIAgentPage.tsx
+|   |   |   |-- App.tsx
+|   |   |   |-- DecksPage.tsx
+|   |   |   |-- LoginPage.tsx
+|   |   |   |-- ProfilePage.tsx
+|   |   |   |-- ShopPage.css
+|   |   |   |-- achievements.ts
+|   |   |   |-- ai.ts
+|   |   |   |-- auth.ts
+|   |   |   |-- card.ts
+|   |   |   +-- study.ts
+|   |   |   |-- html.ts
+|   |   |-- index.css
+|   |-- index.html
+|   +-- vite.config.ts
+|-- project_structure_clean.txt
+|-- README.md
++-- tree.ps1

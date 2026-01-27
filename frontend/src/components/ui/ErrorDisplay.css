@@ -1,0 +1,46 @@
+.error-display {
+  margin: var(--spacing-md) 0;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: rgba(220, 20, 60, 0.15);
+  border: 1px solid var(--fire-error);
+  border-radius: var(--radius-md);
+  color: var(--fire-error);
+}
+
+.error-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.error-message {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: var(--fire-error);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.error-dismiss:hover {
+  background: rgba(220, 20, 60, 0.2);
+}

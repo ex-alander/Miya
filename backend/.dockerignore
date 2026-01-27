@@ -1,0 +1,21 @@
+# Backend-specific: не копировать в образ при сборке из backend/
+
+.git
+.github
+.env
+.env.*
+!.env.example
+__pycache__
+*.py[cod]
+*.pyo
+.venv
+venv
+env
+*.db
+app.db
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.md
+.idea
+.vscode

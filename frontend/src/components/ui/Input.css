@@ -1,0 +1,7 @@
+.input-error {
+  border-color: var(--fire-error) !important;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.2) !important;
+}

@@ -1,0 +1,217 @@
+# ============================================================
+# CI/CD: тесты, линтеры, сборка Docker, деплой (staging/production)
+# Триггеры: push и pull_request во все ветки; деплой при merge в main/staging
+# ============================================================
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop, staging]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # --- Backend: линт и тесты ---
+  backend-lint-test:
+    name: Backend Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest pytest-cov
+
+      - name: Ruff lint
+        run: ruff check app --output-format=github || true
+
+      - name: Ruff format check
+        run: ruff format app --check || true
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+
+  # --- Frontend: линт и сборка ---
+  frontend-lint-build:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint if present)
+        run: npx eslint src --ext .ts,.tsx --max-warnings 0 || true
+
+      - name: Type check
+        run: npm run build
+
+  # --- Сборка Docker-образов ---
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-lint-test, frontend-lint-build]
+    if: github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        image: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (backend)
+        if: matrix.image == 'backend'
+        id: meta-b
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/miya-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Extract metadata (frontend)
+        if: matrix.image == 'frontend'
+        id: meta-f
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/miya-frontend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Backend
+        if: matrix.image == 'backend'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-b.outputs.tags }}
+          labels: ${{ steps.meta-b.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Frontend
+        if: matrix.image == 'frontend'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-f.outputs.tags }}
+          labels: ${{ steps.meta-f.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # --- Сканирование образов на уязвимости ---
+  scan:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+
+    permissions:
+      security-events: write
+      contents: read
+
+    strategy:
+      matrix:
+        image: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image for scan
+        run: |
+          if [ "${{ matrix.image }}" = "backend" ]; then
+            docker build -t miya-${{ matrix.image }}:scan ./backend
+          else
+            docker build -t miya-${{ matrix.image }}:scan ./frontend
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "miya-${{ matrix.image }}:scan"
+          format: "sarif"
+          output: "trivy-${{ matrix.image }}.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-${{ matrix.image }}.sarif"
+
+  # --- Деплой Staging (при push в staging) ---
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build, scan]
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+      - name: Deploy to staging placeholder
+        run: |
+          echo "Деплой на staging. Подставьте свой способ: Docker Swarm, K8s, Cloud Run, или ssh/app service."
+          echo "Образы: ghcr.io/${{ github.repository_owner }}/miya-backend:staging, miya-frontend:staging"
+
+  # --- Деплой Production (при push в main) ---
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build, scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Deploy to production placeholder
+        run: |
+          echo "Деплой на production. Подставьте свой способ: Docker Swarm, K8s, Cloud Run, или ssh/app service."
+          echo "Образы: ghcr.io/${{ github.repository_owner }}/miya-backend:latest, miya-frontend:latest"

@@ -1,0 +1,92 @@
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.card-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-list-search {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.card-search-input {
+  flex: 1;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(214, 178, 94, 0.28);
+  background: rgba(18, 8, 7, 0.4);
+  color: var(--fire-white);
+}
+
+.card-search-input:focus {
+  outline: none;
+  border-color: var(--fire-gold);
+  box-shadow: 0 0 0 3px rgba(214, 178, 94, 0.15);
+}
+
+.card-list-empty {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: var(--spacing-lg);
+}
+
+.card-dnd-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.card-dnd-item {
+  background: rgba(18, 8, 7, 0.45);
+  border: 1px solid rgba(214, 178, 94, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+}
+
+.card-face {
+  min-height: 120px;
+  color: var(--fire-white);
+}
+
+.card-face-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.card-item-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.card-delete-confirm {
+  background: rgba(220, 20, 60, 0.12);
+  border: 1px solid var(--fire-error);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.card-delete-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.card-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+}

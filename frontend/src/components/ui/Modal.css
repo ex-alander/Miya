@@ -1,0 +1,63 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn var(--transition-base);
+}
+
+.modal-content {
+  background: var(--fire-dark-card);
+  border: 1px solid rgba(214, 178, 94, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn var(--transition-base);
+}
+
+.modal-sm {
+  max-width: 480px;
+}
+
+.modal-md {
+  max-width: 720px;
+}
+
+.modal-lg {
+  max-width: 1024px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--fire-white);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--fire-white);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--fire-gold);
+}
+
+.modal-body {
+  color: rgba(255, 255, 255, 0.9);
+}

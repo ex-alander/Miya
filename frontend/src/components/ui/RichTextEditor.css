@@ -1,0 +1,29 @@
+.rte-wrapper {
+  position: relative;
+}
+
+.rte-container {
+  border: 1px solid rgba(214, 178, 94, 0.25);
+  border-radius: var(--radius-md);
+  background: rgba(18, 8, 7, 0.4);
+  padding: var(--spacing-sm);
+}
+
+.rte-editor {
+  min-height: 140px;
+  color: var(--fire-white);
+  outline: none;
+  padding: var(--spacing-sm);
+}
+
+.rte-editor p {
+  margin: 0 0 8px 0;
+}
+
+.rte-placeholder {
+  position: absolute;
+  top: 40px;
+  left: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
