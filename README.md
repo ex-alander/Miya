@@ -696,7 +696,8 @@ chore:    Вспомогательные изменения
 
 ## 📧 Контакты
 
-**Автор:** Александр Чухлов 
+**Автор:** Александр Чухлов
+
 **Поддержка:** [issues](https://github.com/ex-alander/miya/issues)  
 **Email:** dyrtand@gmail.com
 
