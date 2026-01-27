@@ -27,7 +27,7 @@ def generate_deck_from_text(
     if not ai_agent_service.is_available():
         raise HTTPException(
             status_code=503,
-            detail="AI service is not available. Please configure GEMINI_API_KEY in environment variables.",
+            detail="AI service is not available. Please configure GROQ_API_KEY in environment variables.",
         )
 
     try:
@@ -85,5 +85,5 @@ def get_ai_status():
     """Check if AI service is available."""
     return {
         "available": ai_agent_service.is_available(),
-        "service": "gemini",
+        "service": "GROQ",
     }

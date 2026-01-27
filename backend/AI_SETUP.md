@@ -1,11 +1,11 @@
 # AI Agent Setup Guide
 
 ## Overview
-The AI Agent uses Google's Gemini API to generate flashcards from text input. It's free up to 1.5M tokens per month.
+The AI Agent uses Google's GROQ API to generate flashcards from text input. It's free up to 1.5M tokens per month.
 
 ## Setup Instructions
 
-### 1. Get Gemini API Key
+### 1. Get GROQ API Key
 1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Sign in with your Google account
 3. Click "Create API Key"
@@ -15,16 +15,16 @@ The AI Agent uses Google's Gemini API to generate flashcards from text input. It
 Add the API key to your `.env` file in the `backend/` directory:
 
 ```env
-GEMINI_API_KEY=your-api-key-here
+GROQ_API_KEY=your-api-key-here
 ```
 
 Or set it as an environment variable:
 ```bash
-export GEMINI_API_KEY=your-api-key-here
+export GROQ_API_KEY=your-api-key-here
 ```
 
 ### 3. Install Dependencies
-The Gemini SDK is already in `requirements.txt`. Install it:
+The GROQ SDK is already in `requirements.txt`. Install it:
 
 ```bash
 cd backend

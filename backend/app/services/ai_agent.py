@@ -1,5 +1,5 @@
 """
-AI Agent Service using Groq (replaces Google Gemini)
+AI Agent Service using Groq (replaces Google GROQ)
 Handles text-to-deck generation and other AI features
 """
 import json
@@ -14,10 +14,10 @@ class AIAgentService:
 
     def __init__(self):
         """Initialize Groq client."""
-        if settings.GEMINI_API_KEY: 
+        if settings.GROQ_API_KEY: 
             self.client = OpenAI(
                 base_url="https://api.groq.com/openai/v1",
-                api_key=settings.GEMINI_API_KEY, 
+                api_key=settings.GROQ_API_KEY, 
             )
             self.model = "llama-3.3-70b-versatile" 
         else:
@@ -26,7 +26,7 @@ class AIAgentService:
 
     def is_available(self) -> bool:
         """Check if AI service is available."""
-        return self.client is not None and settings.GEMINI_API_KEY != ""
+        return self.client is not None and settings.GROQ_API_KEY != ""
 
     def generate_deck_from_text(
         self, text: str, deck_title: str | None = None

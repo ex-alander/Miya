@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
 
     # AI
-    GEMINI_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
     DEEPSEEK_API_KEY: str = ""
 
     @property

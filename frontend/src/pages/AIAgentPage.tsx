@@ -84,7 +84,7 @@ function AIAgentPageContent() {
               >
                 {aiStatus.available
                   ? "✓ AI service is available"
-                  : "✗ AI service is not configured. Please set GEMINI_API_KEY in backend .env file."}
+                  : "✗ AI service is not configured. Please set GROQ_API_KEY in backend .env file."}
               </div>
             )}
           </div>

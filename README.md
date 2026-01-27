@@ -223,7 +223,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Отредактировать .env файл, добавить:
 # SECRET_KEY=ваш-секретный-ключ
-# GEMINI_API_KEY=ваш-groq-api-ключ  # Получить на groq.com
+# GROQ_API_KEY=ваш-groq-api-ключ  # Получить на groq.com
 
 # Применить миграции базы данных
 alembic upgrade head
@@ -590,7 +590,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/miya
       - SECRET_KEY=${SECRET_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
     ports:
       - "8000:8000"
   
