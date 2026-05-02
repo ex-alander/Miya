@@ -10,12 +10,16 @@ class Deck(Base):
     __tablename__ = "decks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    node_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("mental_map_nodes.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    tags: Mapped[str | None] = mapped_column(Text, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -31,6 +35,11 @@ class Deck(Base):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="decks")
+    node: Mapped["MentalMapNode | None"] = relationship(
+        "MentalMapNode",
+        back_populates="deck",
+        foreign_keys=[node_id],
+    )
     cards: Mapped[list["Card"]] = relationship(
         "Card",
         back_populates="deck",

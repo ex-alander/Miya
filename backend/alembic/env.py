@@ -15,7 +15,10 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models.achievement import Achievement, UserAchievement  # noqa: F401
 from app.models.card import Card  # noqa: F401
+from app.models.card_link import CardLink  # noqa: F401
+from app.models.card_position import CardPosition  # noqa: F401
 from app.models.deck import Deck  # noqa: F401
+from app.models.mental_map import MentalMap, MentalMapNode  # noqa: F401 - before Deck for FK
 from app.models.shop_item import ShopItem, UserInventory  # noqa: F401
 from app.models.user import User  # noqa: F401  (ensures metadata is populated)
 

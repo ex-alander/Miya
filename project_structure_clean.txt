@@ -1,9 +1,13 @@
 ﻿========================================
 PROJECT STRUCTURE (CLEAN)
+Generated: 2026-04-18 00:10:58
+Path: C:\Users\user\Documents\Projects\JMLC\Miya
 ========================================
 
 |-- [.cursor]/
+|-- [.github]/
 |   +-- [workflows]/
+|       +-- ci-cd.yml
 |-- [backend]/
 |   |-- [alembic]/
 |   |   |-- [versions]/
@@ -11,89 +15,219 @@ PROJECT STRUCTURE (CLEAN)
 |   |   |   |-- 20260119_0001_create_users.py
 |   |   |   |-- 5fbb19035a31_create_decks_table.py
 |   |   |   |-- 7a23ac4a6376_create_cards_table.py
+|   |   |   |-- 9996f9fe8f76_add_user_streak_tracking.py
+|   |   |   |-- 9b811d30661b_create_achievements_system.py
+|   |   |   |-- c5f4d8b3a9e1_add_tags_and_import_export.py
+|   |   |   |-- d1e2f3a4b5c6_create_mental_maps.py
+|   |   |   |-- e2f3a4b5c6d7_slice2_node_types_deck_link.py
+|   |   |   +-- f3a8b9c0d1e2_mental_map_node_source_ref.py
 |   |   |-- env.py
 |   |-- [app]/
 |   |   |-- [api]/
+|   |   |   |-- [routes]/
 |   |   |   |   |-- __init__.py
+|   |   |   |   |-- achievements.py
 |   |   |   |   |-- ai.py
+|   |   |   |   |-- auth.py
 |   |   |   |   |-- cards.py
+|   |   |   |   |-- decks.py
+|   |   |   |   |-- import_export.py
+|   |   |   |   |-- mental_map.py
 |   |   |   |   |-- shop.py
 |   |   |   |   |-- study.py
+|   |   |   |   +-- users.py
 |   |   |   |-- __init__.py
 |   |   |   +-- router.py
+|   |   |-- [core]/
+|   |   |   |-- config.py
+|   |   |   |-- deps.py
 |   |   |   |-- logging_config.py
 |   |   |   +-- security.py
+|   |   |-- [crud]/
+|   |   |   |-- __init__.py
 |   |   |   |-- achievement.py
 |   |   |   |-- base.py
+|   |   |   |-- card.py
 |   |   |   |-- deck.py
+|   |   |   |-- mental_map.py
 |   |   |   |-- shop.py
+|   |   |   +-- user.py
+|   |   |-- [db]/
 |   |   |   |-- base.py
+|   |   |   |-- seed_achievements.py
 |   |   |   |-- seed_shop.py
 |   |   |   +-- session.py
+|   |   |-- [fonts]/
+|   |   |   |-- README.md
+|   |   |-- [models]/
 |   |   |   |-- __init__.py
 |   |   |   |-- achievement.py
-|   |   |   |-- deck.py
-|   |   |   |-- shop_item.py
-|   |   |   |-- __init__.py
-|   |   |   |-- ai.py
 |   |   |   |-- card.py
+|   |   |   |-- card_link.py
+|   |   |   |-- card_position.py
+|   |   |   |-- deck.py
+|   |   |   |-- import_export_log.py
+|   |   |   |-- mental_map.py
+|   |   |   |-- shop_item.py
+|   |   |   +-- user.py
+|   |   |-- [schemas]/
+|   |   |   |-- __init__.py
+|   |   |   |-- achievement.py
+|   |   |   |-- ai.py
+|   |   |   |-- auth.py
+|   |   |   |-- card.py
+|   |   |   |-- deck.py
+|   |   |   |-- import_export.py
+|   |   |   |-- mental_map.py
 |   |   |   |-- shop.py
+|   |   |   |-- study.py
 |   |   |   |-- token.py
 |   |   |   +-- user.py
 |   |   |-- [services]/
 |   |   |   |-- ai_agent.py
 |   |   |   |-- boosts.py
+|   |   |   |-- deck_import_export.py
+|   |   |   |-- economy.py
+|   |   |   |-- mental_map_layout.py
+|   |   |   +-- sm2.py
 |   |   |-- __init__.py
 |   |   +-- main.py
 |   |-- [tests]/
-|   |   +-- __init__.py
+|   |   |-- __init__.py
+|   |   +-- test_example.py
 |   |-- .dockerignore
+|   |-- .env
+|   |-- .env.example
 |   |-- AI_SETUP.md
+|   |-- alembic.ini
 |   |-- entrypoint.sh
 |   |-- requirements.txt
+|   +-- uvicorn
 |-- [frontend]/
 |   |-- [dist]/
+|   |-- [docker]/
+|   |   +-- nginx.conf
 |   |-- [node_modules]/
+|   |-- [public]/
+|   |   +-- [sounds]/
+|   |-- [src]/
 |   |   |-- [components]/
 |   |   |   |-- [auth]/
+|   |   |   |   +-- ProtectedRoute.tsx
+|   |   |   |-- [battlefield]/
+|   |   |   |   |-- AIGenerationModal.css
+|   |   |   |   |-- AIGenerationModal.tsx
+|   |   |   |   |-- NewMapChoiceModal.css
+|   |   |   |   +-- NewMapChoiceModal.tsx
+|   |   |   |-- [cards]/
+|   |   |   |   |-- CardFlip.css
 |   |   |   |   |-- CardFlip.tsx
+|   |   |   |   |-- CardForm.css
+|   |   |   |   |-- CardForm.tsx
 |   |   |   |   |-- CardList.css
+|   |   |   |   +-- CardList.tsx
 |   |   |   |-- [decks]/
+|   |   |   |   |-- DeckForm.css
 |   |   |   |   |-- DeckForm.tsx
 |   |   |   |   |-- DeckList.css
+|   |   |   |   +-- DeckList.tsx
+|   |   |   |-- [study]/
 |   |   |   |   |-- CardReview.css
+|   |   |   |   |-- CardReview.tsx
+|   |   |   |   |-- SessionSummary.css
 |   |   |   |   |-- SessionSummary.tsx
+|   |   |   |   |-- StudyProgress.css
 |   |   |   |   +-- StudyProgress.tsx
 |   |   |   |-- [ui]/
+|   |   |   |   |-- Badge.css
+|   |   |   |   |-- Badge.tsx
 |   |   |   |   |-- Button.css
 |   |   |   |   |-- Button.tsx
+|   |   |   |   |-- Card.css
+|   |   |   |   |-- Card.tsx
 |   |   |   |   |-- ConfirmDialog.css
+|   |   |   |   |-- ConfirmDialog.tsx
 |   |   |   |   |-- ErrorDisplay.css
+|   |   |   |   |-- ErrorDisplay.tsx
+|   |   |   |   |-- FireConfirmModal.css
+|   |   |   |   |-- FireConfirmModal.tsx
 |   |   |   |   |-- Grid.css
+|   |   |   |   |-- Grid.tsx
+|   |   |   |   |-- Input.css
 |   |   |   |   |-- Input.tsx
+|   |   |   |   |-- LoadingSpinner.css
 |   |   |   |   |-- LoadingSpinner.tsx
 |   |   |   |   |-- Modal.css
+|   |   |   |   |-- Modal.tsx
 |   |   |   |   |-- RichTextEditor.css
+|   |   |   |   |-- RichTextEditor.tsx
 |   |   |   |   |-- StatCard.css
+|   |   |   |   |-- StatCard.tsx
+|   |   |   |   |-- ToastProvider.css
 |   |   |   |   +-- ToastProvider.tsx
+|   |   |   |-- COMPONENTS.md
+|   |   |   |-- ErrorBoundary.css
 |   |   |   +-- ErrorBoundary.tsx
+|   |   |-- [contexts]/
+|   |   |   +-- AuthContext.tsx
 |   |   |-- [hooks]/
+|   |   |   +-- useApi.ts
+|   |   |-- [pages]/
 |   |   |   |-- AchievementsPage.css
+|   |   |   |-- AchievementsPage.tsx
+|   |   |   |-- AIAgentPage.css
 |   |   |   |-- AIAgentPage.tsx
 |   |   |   |-- App.tsx
+|   |   |   |-- BattlefieldPage.tsx
+|   |   |   |-- DeckDetailPage.tsx
 |   |   |   |-- DecksPage.tsx
+|   |   |   |-- ImportExportPage.tsx
+|   |   |   |-- InventoryPage.css
+|   |   |   |-- InventoryPage.tsx
 |   |   |   |-- LoginPage.tsx
+|   |   |   |-- PomodoroPage.css
+|   |   |   |-- PomodoroPage.tsx
 |   |   |   |-- ProfilePage.tsx
+|   |   |   |-- RegisterPage.tsx
 |   |   |   |-- ShopPage.css
+|   |   |   |-- ShopPage.tsx
+|   |   |   |-- StudyPage.css
+|   |   |   +-- StudyPage.tsx
+|   |   |-- [services]/
 |   |   |   |-- achievements.ts
 |   |   |   |-- ai.ts
+|   |   |   |-- api.ts
 |   |   |   |-- auth.ts
 |   |   |   |-- card.ts
+|   |   |   |-- deck.ts
+|   |   |   |-- importExport.ts
+|   |   |   |-- mentalMap.ts
+|   |   |   |-- shop.ts
 |   |   |   +-- study.ts
+|   |   |-- [styles]/
+|   |   |   |-- BattlefieldPage.css
+|   |   |   +-- theme.css
+|   |   |-- [utils]/
+|   |   |   |-- extractDocumentText.ts
 |   |   |   |-- html.ts
+|   |   |   |-- mapExport.ts
+|   |   |   |-- storage.ts
+|   |   |   +-- validation.ts
 |   |   |-- index.css
+|   |   +-- main.tsx
+|   |-- .dockerignore
 |   |-- index.html
+|   |-- package.json
+|   |-- package-lock.json
+|   |-- README.md
+|   |-- tsconfig.json
 |   +-- vite.config.ts
-|-- project_structure_clean.txt
+|-- .dockerignore
+|-- .env
+|-- .gitignore
+|-- AGENTS.md
+|-- docker-compose.yml
+|-- Makefile
+|-- miya.bat
 |-- README.md
 +-- tree.ps1

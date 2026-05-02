@@ -4,16 +4,19 @@ import { CardForm } from "../components/cards/CardForm";
 import { CardList } from "../components/cards/CardList";
 import { Card as CardType, cardService, CardCreate, CardUpdate } from "../services/card";
 import { deckService, type Deck } from "../services/deck";
+import { importExportService } from "../services/importExport";
 import { useApi } from "../hooks/useApi";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorDisplay } from "../components/ui/ErrorDisplay";
+import { useToast } from "../components/ui/ToastProvider";
 
 export default function DeckDetailPage() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
@@ -54,6 +57,23 @@ export default function DeckDetailPage() {
   const loading = deckApi.loading || createCardApi.loading || updateCardApi.loading;
   const error = deckApi.error || createCardApi.error || updateCardApi.error;
 
+  const handleExport = async (format: "json" | "md" | "pdf" | "apkg") => {
+    if (!deck) return;
+    try {
+      const blob = await importExportService.download(deck.id, format);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${deck.title.replace(/\s+/g, "_") || "deck"}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Deck exported as ${format.toUpperCase()}`, "success");
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || "Failed to export deck";
+      showToast(msg, "error");
+    }
+  };
+
   if (!deckId) return <div className="container">Deck not found.</div>;
   if (!deck && deckApi.loading) return <LoadingSpinner />;
 
@@ -74,6 +94,21 @@ export default function DeckDetailPage() {
                 )}
                 <div style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "0.9rem" }}>
                   {deck.is_public ? "Public deck" : "Private deck"}
+                </div>
+                <div style={{ marginTop: 8, fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>
+                  Export:&nbsp;
+                  <Button variant="ghost" size="sm" onClick={() => handleExport("json")}>
+                    JSON
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleExport("md")}>
+                    Markdown
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleExport("pdf")}>
+                    PDF
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleExport("apkg")}>
+                    Anki (.apkg)
+                  </Button>
                 </div>
               </div>
               <Button

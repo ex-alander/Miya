@@ -1,0 +1,270 @@
+/* Pomodoro Page - Fire Nation Theme */
+
+.pomodoro-container {
+  min-height: calc(100vh - 180px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) 0;
+}
+
+.pomodoro-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* Timer Card */
+.pomodoro-timer {
+  position: relative;
+  width: 320px;
+  height: 380px;
+  background: var(--fire-dark-card);
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  user-select: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pomodoro-timer:hover {
+  border-color: var(--fire-gold);
+  box-shadow: 0 0 20px rgba(214, 178, 94, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Timer Numbers Container */   
+.pomodoro-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+/* Main Time (Work) */
+.pomodoro-main-time {
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fire-white);
+  text-shadow: 0 0 10px rgba(214, 178, 94, 0.3);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-feature-settings: "tnum";
+  letter-spacing: 2px;
+  outline: none;
+  transform: translateZ(0);
+}
+
+.pomodoro-main-time:hover {
+  color: var(--fire-gold);
+  text-shadow: 0 0 20px rgba(214, 178, 94, 0.5);
+  background: rgba(214, 178, 94, 0.08);
+}
+
+/* Active phase highlighting */
+.pomodoro-main-time.phase-active {
+  color: var(--fire-gold);
+  text-shadow: 0 0 20px rgba(214, 178, 94, 0.5);
+}
+
+/* Break Times Container */
+.pomodoro-breaks {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 2rem;
+  color: var(--fire-white);
+}
+
+.pomodoro-break-time {
+  font-size: 2rem;
+  font-weight: 600;
+  transition: all var(--transition-base);
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-feature-settings: "tnum";
+  min-width: 70px;
+  text-align: center;
+  outline: none;
+  transform: translateZ(0);
+}
+
+.pomodoro-break-time:hover {
+  color: var(--fire-gold);
+  background: rgba(214, 178, 94, 0.08);
+}
+
+/* Active phase highlighting for breaks */
+.pomodoro-break-time.phase-active {
+  color: var(--fire-gold);
+  text-shadow: 0 0 15px rgba(214, 178, 94, 0.4);
+  /* background: rgba(214, 178, 94, 0.08); */
+}
+
+.pomodoro-break-separator {
+  color: var(--fire-gold);
+  font-size: 2.5rem;
+  font-weight: 300;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+/* Active timer states */
+.pomodoro-timer.active {
+  border-color: var(--fire-gold);
+  box-shadow: 0 0 30px rgba(214, 178, 94, 0.4);
+}
+
+/* Timer with seconds (active or paused) */
+.pomodoro-main-time.with-seconds {
+  font-size: 4.2rem;
+  letter-spacing: 4px;
+}
+
+.pomodoro-break-time.with-seconds {
+  font-size: 1.8rem;
+}
+
+/* Edit mode - подсветка */
+.pomodoro-main-time.editing,
+.pomodoro-break-time.editing {
+  background: rgba(214, 178, 94, 0.15);
+  border: 1px solid var(--fire-gold);
+  box-shadow: 0 0 15px rgba(214, 178, 94, 0.3);
+  transform: scale(1.05) translateZ(0);
+  z-index: 10;
+}
+
+.pomodoro-break-time.editing {
+  transform: scale(1.05) translateZ(0);
+  margin: 0;
+}
+
+.pomodoro-breaks.editing-short .pomodoro-break-time:first-child {
+  transform: scale(1.05) translateZ(0);
+  margin-right: var(--spacing-sm);
+}
+
+.pomodoro-breaks.editing-long .pomodoro-break-time:last-child {
+  transform: scale(1.05) translateZ(0);
+  margin-left: var(--spacing-sm);
+}
+
+/* Empty state */
+.pomodoro-empty-state {
+  text-align: center;
+  color: var(--fire-gray);
+  font-size: 1.2rem;
+  padding: var(--spacing-2xl);
+  background: var(--fire-dark-card);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--fire-gold);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.pomodoro-empty-state:hover {
+  border-color: var(--fire-gold-light);
+  background: rgba(214, 178, 94, 0.08);
+  transform: scale(1.02);
+}
+
+.pomodoro-empty-state p {
+  margin-bottom: var(--spacing-md);
+  color: var(--fire-gold);
+}
+
+.pomodoro-empty-state small {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.timer-appear {
+  animation: fadeIn 0.2s ease;
+}
+
+/* Анимация исчезновения */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.timer-disappear {
+  animation: fadeOut 0.2s ease forwards;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pomodoro-grid {
+    gap: var(--spacing-lg);
+  }
+
+  .pomodoro-timer {
+    width: 280px;
+    height: 340px;
+  }
+
+  .pomodoro-main-time {
+    font-size: 4rem;
+  }
+
+  .pomodoro-main-time.with-seconds {
+    font-size: 3.5rem;
+  }
+
+  .pomodoro-break-time {
+    font-size: 1.8rem;
+  }
+
+  .pomodoro-break-time.with-seconds {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pomodoro-timer {
+    width: 100%;
+    max-width: 320px;
+  }
+}

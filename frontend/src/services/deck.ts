@@ -6,6 +6,7 @@ export interface Deck {
   description: string | null;
   user_id: number;
   is_public: boolean;
+  tags?: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -14,12 +15,14 @@ export interface DeckCreate {
   title: string;
   description?: string | null;
   is_public?: boolean;
+  tags?: string[] | null;
 }
 
 export interface DeckUpdate {
   title?: string;
   description?: string | null;
   is_public?: boolean;
+  tags?: string[] | null;
 }
 
 export interface DeckListResponse {
@@ -35,6 +38,13 @@ export interface DeckListParams {
   page_size?: number;
   is_public?: boolean;
   search?: string;
+}
+
+export interface DeckStatus {
+  next_review: string | null;
+  due_count: number;
+  is_due: boolean;
+  is_mastered: boolean;
 }
 
 export const deckService = {
@@ -65,5 +75,10 @@ export const deckService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`/decks/${id}`);
+  },
+
+  async getStatus(deckId: number): Promise<DeckStatus> {
+    const response = await api.get<DeckStatus>(`/decks/${deckId}/status`);
+    return response.data;
   },
 };

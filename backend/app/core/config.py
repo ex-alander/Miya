@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     # AI
     GROQ_API_KEY: str = ""
     DEEPSEEK_API_KEY: str = ""
+    PROXY_API_KEY: str = ""
 
     @property
     def cors_origins_list(self) -> list[str]:

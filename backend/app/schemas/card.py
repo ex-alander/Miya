@@ -1,17 +1,30 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CardBase(BaseModel):
     front_content: str = Field(..., min_length=1, max_length=5000)
     back_content: str = Field(..., min_length=1, max_length=5000)
+    hint: str | None = Field(default=None, max_length=2000)
     ease_factor: float | None = Field(default=None, ge=1.3, le=3.0)
     interval: int | None = Field(default=None, ge=0)
     repetitions: int | None = Field(default=None, ge=0)
     next_review: datetime | None = None
     order_index: int | None = Field(default=None, ge=0)
+    tags: list[str] | None = Field(default=None)
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def parse_tags(cls, v: str | list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            return [t.strip() for t in v.split(",") if t.strip()]
+        return None
 
 
 class CardCreate(CardBase):
@@ -49,7 +62,9 @@ class CardListResponse(BaseModel):
 class CardBulkCreateItem(BaseModel):
     front_content: str = Field(..., min_length=1, max_length=5000)
     back_content: str = Field(..., min_length=1, max_length=5000)
+    hint: str | None = Field(default=None, max_length=2000)
     order_index: int | None = Field(default=None, ge=0)
+    tags: list[str] | None = Field(default=None)
 
 
 class CardBulkCreateRequest(BaseModel):

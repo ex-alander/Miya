@@ -44,7 +44,11 @@
 
 .achievement-card.unlocked {
   border-color: var(--fire-gold);
-  background: linear-gradient(135deg, rgba(179, 18, 43, 0.3) 0%, rgba(42, 20, 16, 0.5) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(179, 18, 43, 0.3) 0%,
+    rgba(42, 20, 16, 0.5) 100%
+  );
 }
 
 .achievement-card.locked {

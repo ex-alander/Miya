@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { DeckList } from "../components/decks/DeckList";
 import { DeckForm } from "../components/decks/DeckForm";
 import { Card } from "../components/ui/Card";
-import { deckService, type Deck, type DeckCreate, type DeckUpdate } from "../services/deck";
+import {
+  deckService,
+  type Deck,
+  type DeckCreate,
+  type DeckUpdate,
+} from "../services/deck";
 import { useApi } from "../hooks/useApi";
 
 export default function DecksPage() {
@@ -51,8 +56,14 @@ export default function DecksPage() {
 
   if (showForm) {
     return (
-      <div className="container" style={{ paddingTop: "32px", paddingBottom: "48px" }}>
-        <div className="animate-fade-in" style={{ maxWidth: "800px", margin: "0 auto" }}>
+      <div
+        className="container"
+        style={{ paddingTop: "32px", paddingBottom: "48px" }}
+      >
+        <div
+          className="animate-fade-in"
+          style={{ maxWidth: "800px", margin: "0 auto" }}
+        >
           <Card dark>
             <DeckForm
               deck={editingDeck}
@@ -68,8 +79,14 @@ export default function DecksPage() {
   }
 
   return (
-    <div className="container" style={{ paddingTop: "32px", paddingBottom: "48px" }}>
-      <div className="animate-fade-in" style={{ maxWidth: "1200px", margin: "0 auto" }}>
+    <div
+      className="container"
+      style={{ paddingTop: "32px", paddingBottom: "48px" }}
+    >
+      <div
+        className="animate-fade-in"
+        style={{ maxWidth: "1200px", margin: "0 auto" }}
+      >
         <div style={{ marginBottom: "24px" }}>
           <h1 style={{ fontSize: "2.25rem", marginBottom: "8px" }}>Decks</h1>
           <p style={{ color: "rgba(255, 255, 255, 0.72)" }}>
@@ -88,5 +105,3 @@ export default function DecksPage() {
     </div>
   );
 }
-
-

@@ -13,9 +13,15 @@ pydantic-settings==2.6.1
 python-multipart==0.0.12
 email-validator==2.2.0
 
+# AI stuff
 google-generativeai==0.8.3
 openai==1.72.0
+gigachat
 
 # Production: structured logging, rate limiting
 python-json-logger==2.0.7
 slowapi==0.1.9
+
+# Import / export: Anki, PDF
+genanki==0.13.1
+reportlab==4.4.9

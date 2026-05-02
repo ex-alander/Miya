@@ -1,7 +1,11 @@
 .study-page {
   min-height: 100vh;
   padding: var(--spacing-xl);
-  background: linear-gradient(135deg, rgba(18, 8, 7, 0.95) 0%, rgba(42, 20, 16, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(18, 8, 7, 0.95) 0%,
+    rgba(42, 20, 16, 0.95) 100%
+  );
 }
 
 .study-container {

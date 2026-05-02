@@ -1,0 +1,115 @@
+.fire-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fire-confirm-fade 0.2s ease;
+}
+
+@keyframes fire-confirm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fire-confirm-modal {
+  background: rgba(18, 8, 7, 0.98);
+  border: 1px solid rgba(214, 178, 94, 0.35);
+  border-radius: 8px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(214, 178, 94, 0.1);
+  animation: fire-confirm-slide 0.25s ease;
+}
+
+@keyframes fire-confirm-slide {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.fire-confirm-title {
+  margin: 0 0 12px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--fire-gold, #d6b25e);
+}
+
+.fire-confirm-message {
+  margin: 0 0 16px 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.fire-confirm-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(214, 178, 94, 0.35);
+  border-radius: 4px;
+  color: #fff;
+  outline: none;
+}
+
+.fire-confirm-input:focus {
+  border-color: rgba(214, 178, 94, 0.6);
+}
+
+.fire-confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.fire-confirm-cancel,
+.fire-confirm-ok {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.fire-confirm-cancel {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(214, 178, 94, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fire-confirm-cancel:hover {
+  background: rgba(42, 20, 16, 0.8);
+  border-color: rgba(214, 178, 94, 0.5);
+}
+
+.fire-confirm-ok {
+  background: rgba(214, 178, 94, 0.2);
+  border: 1px solid rgba(214, 178, 94, 0.5);
+  color: var(--fire-gold, #d6b25e);
+}
+
+.fire-confirm-ok:hover {
+  background: rgba(214, 178, 94, 0.3);
+  border-color: rgba(214, 178, 94, 0.7);
+}
+
+.fire-confirm-ok.danger {
+  background: rgba(179, 18, 43, 0.25);
+  border-color: rgba(179, 18, 43, 0.5);
+  color: #e8a0a8;
+}
+
+.fire-confirm-ok.danger:hover {
+  background: rgba(179, 18, 43, 0.4);
+  border-color: rgba(179, 18, 43, 0.7);
+}

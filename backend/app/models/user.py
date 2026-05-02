@@ -8,6 +8,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.deck import Deck
+    from app.models.mental_map import MentalMap
 
 
 class User(Base):
@@ -35,5 +36,8 @@ class User(Base):
 
     # Relationships
     decks: Mapped[list["Deck"]] = relationship("Deck", back_populates="user", cascade="all, delete-orphan")
+    mental_maps: Mapped[list["MentalMap"]] = relationship(
+        "MentalMap", back_populates="user", cascade="all, delete-orphan"
+    )
     inventory: Mapped[list["UserInventory"]] = relationship("UserInventory", back_populates="user", cascade="all, delete-orphan")
 

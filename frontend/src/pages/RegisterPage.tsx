@@ -29,25 +29,33 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ 
-      minHeight: "100vh", 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "center",
-      padding: "24px"
-    }}>
-      <div className="animate-fade-in" style={{ width: "100%", maxWidth: "420px" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
+    >
+      <div
+        className="animate-fade-in"
+        style={{ width: "100%", maxWidth: "420px" }}
+      >
         <Card className="card-dark">
           <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <h1 style={{ 
-              fontSize: "2.5rem", 
-              marginBottom: "8px",
-              letterSpacing: "0.2px",
-              background: "linear-gradient(135deg, #F1DE9A 0%, #D6B25E 45%, #8A6A1F 120%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text"
-            }}>
+            <h1
+              style={{
+                fontSize: "2.5rem",
+                marginBottom: "8px",
+                letterSpacing: "0.2px",
+                background:
+                  "linear-gradient(135deg, #F1DE9A 0%, #D6B25E 45%, #8A6A1F 120%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               Create account
             </h1>
             <p style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "1rem" }}>
@@ -55,7 +63,10 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <form
+            onSubmit={onSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          >
             <Input
               label="Email"
               type="email"
@@ -84,15 +95,11 @@ export default function RegisterPage() {
               minLength={8}
               placeholder="At least 8 characters"
             />
-            
-            {error && (
-              <div className="alert alert-error">
-                {error}
-              </div>
-            )}
 
-            <Button 
-              type="submit" 
+            {error && <div className="alert alert-error">{error}</div>}
+
+            <Button
+              type="submit"
               disabled={submitting}
               size="lg"
               style={{ width: "100%", marginTop: "8px" }}
@@ -101,20 +108,27 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div style={{ 
-            marginTop: "24px", 
-            textAlign: "center",
-            paddingTop: "24px",
-            borderTop: "1px solid rgba(255, 255, 255, 0.1)"
-          }}>
-            <p style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "0.875rem" }}>
+          <div
+            style={{
+              marginTop: "24px",
+              textAlign: "center",
+              paddingTop: "24px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <p
+              style={{
+                color: "rgba(255, 255, 255, 0.7)",
+                fontSize: "0.875rem",
+              }}
+            >
               Already have an account?{" "}
-              <Link 
-                to="/login" 
-                style={{ 
-                  color: "#D6B25E", 
+              <Link
+                to="/login"
+                style={{
+                  color: "#D6B25E",
                   fontWeight: 600,
-                  textDecoration: "none"
+                  textDecoration: "none",
                 }}
               >
                 Sign in
@@ -126,4 +140,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

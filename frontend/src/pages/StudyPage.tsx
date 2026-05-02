@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute";
 import { CardReview } from "../components/study/CardReview";
 import { StudyProgress } from "../components/study/StudyProgress";
@@ -15,7 +15,15 @@ import "./StudyPage.css";
 function StudyPageContent() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+
+  const navState = location.state as
+    | { fromBattlefield?: boolean; mapId?: number }
+    | undefined;
+  const fromBattlefield = !!navState?.fromBattlefield;
+  const battlefieldMapId = navState?.mapId;
+  const deckIdNum = deckId ? parseInt(deckId, 10) : null;
 
   const [cards, setCards] = useState<DueCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,7 +59,13 @@ function StudyPageContent() {
       setCards(result);
       if (result.length === 0) {
         showToast("No cards due for review!", "info");
-        navigate("/decks");
+        if (fromBattlefield && battlefieldMapId && deckIdNum) {
+          navigate(`/battlefield/${battlefieldMapId}`, {
+            state: { studyCompleted: true, deckId: deckIdNum },
+          });
+        } else {
+          navigate("/decks");
+        }
       }
     }
   };
@@ -103,7 +117,13 @@ function StudyPageContent() {
   };
 
   const handleClose = () => {
-    navigate("/decks");
+    if (fromBattlefield && battlefieldMapId && deckIdNum) {
+      navigate(`/battlefield/${battlefieldMapId}`, {
+        state: { studyCompleted: true, deckId: deckIdNum },
+      });
+    } else {
+      navigate("/decks");
+    }
   };
 
   const handleRestart = () => {
@@ -127,7 +147,19 @@ function StudyPageContent() {
     return (
       <div className="study-page">
         <ErrorDisplay error={loadCardsApi.error} />
-        <button onClick={() => navigate("/decks")}>Back to Decks</button>
+        <button
+          onClick={() => {
+            if (fromBattlefield && battlefieldMapId && deckIdNum) {
+              navigate(`/battlefield/${battlefieldMapId}`, {
+                state: { studyCompleted: false, deckId: deckIdNum },
+              });
+            } else {
+              navigate("/decks");
+            }
+          }}
+        >
+          Back
+        </button>
       </div>
     );
   }
@@ -137,7 +169,19 @@ function StudyPageContent() {
       <div className="study-page">
         <div className="no-cards">
           <h2>No cards due for review</h2>
-          <button onClick={() => navigate("/decks")}>Back to Decks</button>
+          <button
+            onClick={() => {
+              if (fromBattlefield && battlefieldMapId && deckIdNum) {
+                navigate(`/battlefield/${battlefieldMapId}`, {
+                  state: { studyCompleted: true, deckId: deckIdNum },
+                });
+              } else {
+                navigate("/decks");
+              }
+            }}
+          >
+            Back
+          </button>
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-# tree-clean-ascii.ps1 - Простая ASCII версия
+# tree-clean-ascii.ps1 - Fixed version with ASCII
 $output = "project_structure_clean.txt"
 
 # Папки и файлы, которые нужно полностью игнорировать
@@ -41,6 +41,8 @@ function Get-CleanTree {
         [string]$indent = "",
         [int]$depth = 0
     )
+    
+    $lines = @()
     
     try {
         $items = Get-ChildItem $path -ErrorAction SilentlyContinue | 
@@ -91,12 +93,12 @@ function Get-CleanTree {
             if ($item.PSIsContainer) {
                 if ($item.Name -in $shallowDirs) {
                     # Показываем папку, но не рекурсивно
-                    "$indent$branch[$($item.Name)]/" | Add-Content $output -Encoding UTF8
+                    $lines += "$indent$branch[$($item.Name)]/"
                 } else {
-                    "$indent$branch[$($item.Name)]/" | Add-Content $output -Encoding UTF8
+                    $lines += "$indent$branch[$($item.Name)]/"
                     # Ограничиваем глубину рекурсии
                     if ($depth -lt 6) {
-                        Get-CleanTree -path $item.FullName -indent $nextIndent -depth ($depth + 1)
+                        $lines += Get-CleanTree -path $item.FullName -indent $nextIndent -depth ($depth + 1)
                     }
                 }
             } else {
@@ -117,7 +119,7 @@ function Get-CleanTree {
                                 'uvicorn', 'entrypoint.sh', '.env.example')
                 
                 if ($ext -in $importantExtensions -or $item.Name -in $configFiles) {
-                    "$indent$branch$($item.Name)" | Add-Content $output -Encoding UTF8
+                    $lines += "$indent$branch$($item.Name)"
                 }
             }
         }
@@ -125,21 +127,41 @@ function Get-CleanTree {
     catch {
         # Игнорируем ошибки доступа
     }
+    
+    return $lines
 }
 
 # Очистка старого файла
-if (Test-Path $output) { Remove-Item $output }
+if (Test-Path $output) { 
+    # Make sure file is not locked before deleting
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+    Remove-Item $output -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 100
+}
+
+# Создаем новый файл с содержимым
+$content = @()
 
 # Заголовок
-"========================================" | Out-File $output -Encoding UTF8
-"PROJECT STRUCTURE (CLEAN)" | Add-Content $output -Encoding UTF8
-"Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Add-Content $output -Encoding UTF8
-"Path: $(Get-Location)" | Add-Content $output -Encoding UTF8
-"========================================`n" | Add-Content $output -Encoding UTF8
+$content += "========================================"
+$content += "PROJECT STRUCTURE (CLEAN)"
+$content += "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+$content += "Path: $(Get-Location)"
+$content += "========================================"
+$content += ""
 
 # Генерация дерева
-Get-CleanTree -path "."
+$content += Get-CleanTree -path "."
+
+# Запись в файл
+$content | Out-File $output -Encoding UTF8
 
 Write-Host "Clean project tree saved to: $output" -ForegroundColor Green
 Write-Host "Lines: $((Get-Content $output).Count)" -ForegroundColor Cyan
-notepad $output
+
+# Ask before opening notepad
+$openFile = Read-Host "Open file in Notepad? (y/n)"
+if ($openFile -eq 'y' -or $openFile -eq 'Y') {
+    notepad $output
+}

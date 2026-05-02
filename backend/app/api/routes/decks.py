@@ -1,12 +1,21 @@
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 
 from app.core.deps import get_current_user, get_db
 from app.crud.deck import deck
 from app.models.user import User
-from app.schemas.deck import DeckCreate, DeckListResponse, DeckResponse, DeckUpdate
+from app.models.card import Card
+from app.schemas.deck import (
+    DeckCreate,
+    DeckListResponse,
+    DeckResponse,
+    DeckStatusResponse,
+    DeckUpdate,
+)
 
 router = APIRouter()
 
@@ -19,6 +28,10 @@ def create_deck(
 ):
     """Create a new deck."""
     deck_data = deck_in.model_dump()
+    # Convert tags list to comma-separated string for storage
+    tags = deck_data.get("tags")
+    if isinstance(tags, list):
+        deck_data["tags"] = ",".join(tags)
     deck_data["user_id"] = current_user.id
     deck_obj = deck.create(db, obj_in=deck_data)
     return deck_obj
@@ -116,6 +129,42 @@ def get_deck(
     return deck_obj
 
 
+@router.get("/{deck_id}/status", response_model=DeckStatusResponse)
+def get_deck_status(
+    deck_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Return study status for a deck (due vs mastered)."""
+    deck_obj = deck.get(db, id=deck_id)
+    if not deck_obj:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    if deck_obj.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    now = datetime.now()
+    next_review = db.scalar(
+        select(func.min(Card.next_review)).where(Card.deck_id == deck_id)
+    )
+    due_count = db.scalar(
+        select(func.count()).where(
+            Card.deck_id == deck_id,
+            Card.next_review <= now,
+        )
+    ) or 0
+
+    is_due = due_count > 0
+    # If there are no cards, next_review is NULL and due_count is 0.
+    is_mastered = not is_due
+
+    return DeckStatusResponse(
+        next_review=next_review,
+        due_count=due_count,
+        is_due=is_due,
+        is_mastered=is_mastered,
+    )
+
+
 @router.patch("/{deck_id}", response_model=DeckResponse)
 def update_deck(
     deck_id: int,
@@ -130,8 +179,13 @@ def update_deck(
     
     if deck_obj.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
-    deck_obj = deck.update(db, db_obj=deck_obj, obj_in=deck_in)
+
+    update_data = deck_in.model_dump(exclude_unset=True)
+    tags = update_data.get("tags")
+    if isinstance(tags, list):
+        update_data["tags"] = ",".join(tags)
+
+    deck_obj = deck.update(db, db_obj=deck_obj, obj_in=update_data)
     return deck_obj
 
 
