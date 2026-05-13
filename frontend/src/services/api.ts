@@ -1,10 +1,25 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../utils/storage";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+/** API host without trailing slash; empty VITE_API_BASE_URL → same origin (nginx /api proxy). */
+function resolveApiOrigin(): string {
+  const raw = import.meta.env.VITE_API_BASE_URL;
+  if (raw !== undefined && raw !== null && String(raw).trim() !== "") {
+    return String(raw).trim().replace(/\/$/, "");
+  }
+  if (import.meta.env.DEV) {
+    return "http://localhost:8000";
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return "http://localhost:8000";
+}
+
+export const API_ORIGIN = resolveApiOrigin();
 
 export const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: `${API_ORIGIN}/api`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -87,7 +102,7 @@ api.interceptors.response.use(
     isRefreshing = true;
     try {
       const resp = await axios.post(
-        `${API_BASE_URL}/api/auth/refresh`,
+        `${API_ORIGIN}/api/auth/refresh`,
         { refresh_token: tokens.refreshToken },
         { headers: { "Content-Type": "application/json" } },
       );

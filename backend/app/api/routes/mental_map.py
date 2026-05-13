@@ -141,7 +141,7 @@ def generate_map_from_text(
     if not ai_agent_service.is_available():
         raise HTTPException(
             status_code=503,
-            detail="AI service is not configured (missing GROQ_API_KEY)",
+            detail="AI service is not configured (missing PROXY_API_KEY or GROQ_API_KEY)",
         )
     try:
         ai = ai_agent_service.generate_mental_map_from_text(data.text, data.title)

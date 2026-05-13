@@ -15,8 +15,8 @@ RUN npm ci
 
 COPY . .
 
-# Сборка для production (VITE_API_BASE_URL задаётся при сборке или в runtime через env)
-ARG VITE_API_BASE_URL=/api
+# Пустое значение: браузер ходит на тот же origin, nginx проксирует /api → backend
+ARG VITE_API_BASE_URL=
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 RUN npm run build

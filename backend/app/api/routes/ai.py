@@ -27,7 +27,7 @@ def generate_deck_from_text(
     if not ai_agent_service.is_available():
         raise HTTPException(
             status_code=503,
-            detail="AI service is not available. Please configure GROQ_API_KEY in environment variables.",
+            detail="AI service is not available. Configure PROXY_API_KEY or GROQ_API_KEY.",
         )
 
     try:

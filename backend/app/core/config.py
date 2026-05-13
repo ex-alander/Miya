@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     DEEPSEEK_API_KEY: str = ""
     PROXY_API_KEY: str = ""
+    # OpenAI-compatible HTTP API (chat + embeddings), e.g. ProxyAPI
+    OPENAI_COMPAT_BASE_URL: str = "https://api.proxyapi.ru/openai/v1"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
 
     @property
     def cors_origins_list(self) -> list[str]:

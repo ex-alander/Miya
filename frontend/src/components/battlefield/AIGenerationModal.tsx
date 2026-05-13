@@ -115,7 +115,7 @@ export function AIGenerationModal({
         typeof detail === "string"
           ? detail
           : err.response?.status === 503
-            ? "ИИ недоступен: проверьте ключ GROQ на сервере."
+            ? "ИИ недоступен: проверьте ключ API (PROXY_API_KEY или GROQ_API_KEY) на сервере."
             : "Не удалось сгенерировать карту";
       onError(msg);
     } finally {

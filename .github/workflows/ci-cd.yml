@@ -39,6 +39,9 @@ jobs:
           pip install -r requirements.txt
           pip install ruff pytest pytest-cov
 
+      - name: RAG stack imports (FAISS, LangChain, BM25)
+        run: python -c "import faiss; import rank_bm25; from app.services.rag_pipeline import split_source_documents"
+
       - name: Ruff lint
         run: ruff check app --output-format=github || true
 
