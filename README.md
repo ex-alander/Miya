@@ -213,4 +213,3 @@ MIT — свободно используй, модифицируй, разви�
 <p align="center">
   <i>Built with React, FastAPI, and too much energy</i>
 </p>
-# force refresh
