@@ -2,7 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: 11500;
-  background: rgba(8, 4, 2, 0.78);
+  background: rgba(6, 3, 2, 0.82);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,13 +14,11 @@
   width: min(520px, 100%);
   max-height: min(90vh, 640px);
   overflow: auto;
-  padding: 22px 22px 18px;
-  background: linear-gradient(168deg, #1e1410 0%, #0c0806 100%);
-  border: 1px solid rgba(214, 178, 94, 0.42);
+  padding: 28px 26px 20px;
+  background: radial-gradient(ellipse at 50% 20%, #1f1008, #0a0503 90%);
+  border: 1px solid #9b7a4a;
   border-radius: 14px;
-  box-shadow:
-    0 0 0 1px rgba(179, 40, 24, 0.25),
-    0 24px 64px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(180, 140, 70, 0.06) inset;
 }
 
 .ai-gen-header {
@@ -27,39 +26,42 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .ai-gen-title {
   margin: 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #e8c878;
-  text-shadow: 0 0 20px rgba(214, 140, 60, 0.35);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #e8d5b0;
+  letter-spacing: 0.02em;
 }
 
 .ai-gen-close {
   flex-shrink: 0;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(214, 120, 70, 0.35);
+  border: 1px solid rgba(160, 130, 80, 0.3);
   border-radius: 8px;
-  background: rgba(40, 18, 12, 0.85);
-  color: #f0d4b8;
+  background: rgba(18, 10, 6, 0.8);
+  color: #b08a6a;
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .ai-gen-close:hover {
-  background: rgba(90, 32, 20, 0.9);
+  background: rgba(40, 20, 12, 0.9);
+  color: #d4b080;
+  border-color: #b8944a;
 }
 
 .ai-gen-lead {
   margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(255, 230, 210, 0.78);
+  color: #9a7a5a;
 }
 
 .ai-gen-drop {
@@ -68,9 +70,9 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  border: 2px dashed rgba(214, 178, 94, 0.35);
+  border: 2px dashed rgba(160, 130, 80, 0.3);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(10, 6, 4, 0.5);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -78,13 +80,13 @@
 .ai-gen-drop:hover,
 .ai-gen-drop:focus {
   outline: none;
-  border-color: rgba(255, 160, 80, 0.55);
-  background: rgba(50, 24, 16, 0.45);
+  border-color: #b8944a;
+  background: rgba(22, 12, 8, 0.6);
 }
 
 .ai-gen-drop.has-file {
   border-style: solid;
-  border-color: rgba(214, 140, 70, 0.5);
+  border-color: #b8944a;
 }
 
 .ai-gen-file-input {
@@ -93,7 +95,7 @@
 
 .ai-gen-drop-text {
   font-size: 14px;
-  color: rgba(255, 220, 190, 0.88);
+  color: #b08a6a;
   text-align: center;
 }
 
@@ -102,9 +104,9 @@
   padding: 10px 12px;
   font-size: 13px;
   line-height: 1.45;
-  color: #ffd4a8;
-  background: rgba(120, 50, 20, 0.35);
-  border: 1px solid rgba(255, 140, 60, 0.25);
+  color: #d4b080;
+  background: rgba(40, 20, 10, 0.5);
+  border: 1px solid rgba(160, 130, 80, 0.2);
   border-radius: 8px;
 }
 
@@ -115,7 +117,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(214, 178, 94, 0.65);
+  color: #9a7a5a;
 }
 
 .ai-gen-input {
@@ -123,10 +125,15 @@
   box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(214, 140, 70, 0.35);
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff4e8;
+  border: 1px solid rgba(160, 130, 80, 0.3);
+  background: rgba(8, 4, 2, 0.6);
+  color: #edddc0;
   font-size: 14px;
+}
+
+.ai-gen-input:focus {
+  outline: none;
+  border-color: #b8944a;
 }
 
 .ai-gen-loading {
@@ -134,50 +141,25 @@
   padding: 16px;
   text-align: center;
   border-radius: 10px;
-  background: rgba(40, 16, 10, 0.55);
-  border: 1px solid rgba(214, 90, 40, 0.25);
+  background: rgba(18, 10, 6, 0.6);
+  border: 1px solid rgba(160, 130, 80, 0.2);
 }
 
 .ai-gen-flame {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 12px;
-  border-radius: 50% 50% 45% 45%;
-  background: radial-gradient(
-    ellipse at 50% 80%,
-    #ff6a2e 0%,
-    #c42818 45%,
-    #4a1208 100%
-  );
-  box-shadow:
-    0 0 24px rgba(255, 100, 40, 0.55),
-    0 0 48px rgba(255, 60, 20, 0.25);
-  animation: ai-gen-pulse 1.1s ease-in-out infinite;
-}
-
-@keyframes ai-gen-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: scale(1.08);
-    filter: brightness(1.15);
-  }
+  display: none; /* убираем анимацию огня */
 }
 
 .ai-gen-loading-text {
   margin: 0 0 12px;
   font-size: 14px;
-  color: rgba(255, 220, 190, 0.92);
+  color: #d4b080;
   min-height: 1.4em;
 }
 
 .ai-gen-progress {
   height: 4px;
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(30, 16, 10, 0.6);
   overflow: hidden;
 }
 
@@ -185,7 +167,7 @@
   height: 100%;
   width: 40%;
   border-radius: 2px;
-  background: linear-gradient(90deg, #8a2418, #e8a040, #8a2418);
+  background: linear-gradient(90deg, #b8944a, #e8d5b0, #b8944a);
   background-size: 200% 100%;
   animation: ai-gen-shimmer 1.2s linear infinite;
 }
@@ -212,38 +194,42 @@
   padding: 10px 18px;
   border: none;
   background: transparent;
-  color: rgba(255, 200, 170, 0.8);
+  color: #7a6250;
   font-size: 14px;
   cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ai-gen-cancel:hover:not(:disabled) {
+  color: #b8945a;
 }
 
 .ai-gen-cancel:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .ai-gen-essence {
   padding: 10px 22px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: #fff8f0;
+  color: #1a0e08;
   cursor: pointer;
-  border: 2px solid rgba(232, 200, 120, 0.65);
-  background: linear-gradient(180deg, #9e2818 0%, #5c140c 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 200, 150, 0.25),
-    0 4px 14px rgba(0, 0, 0, 0.45);
-  transition: filter 0.15s, opacity 0.15s;
+  border: 1px solid #b8944a;
+  background: linear-gradient(180deg, #e8d5b0 0%, #c9a24a 100%);
+  box-shadow: 0 0 0 1px rgba(180, 140, 70, 0.15), 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
 .ai-gen-essence:hover:not(:disabled) {
-  filter: brightness(1.12);
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 1px rgba(180, 140, 70, 0.25), 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .ai-gen-essence:disabled {
-  opacity: 0.38;
+  opacity: 0.35;
   cursor: not-allowed;
   filter: grayscale(0.3);
 }

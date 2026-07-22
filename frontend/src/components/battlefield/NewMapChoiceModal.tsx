@@ -20,9 +20,9 @@ export function NewMapChoiceModal({
   return (
     <div className="new-map-choice-overlay" onClick={onCancel}>
       <div className="new-map-choice-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="new-map-choice-title">Новая карта</h3>
+        <h3 className="new-map-choice-title">New Map</h3>
         <p className="new-map-choice-sub">
-          Пустое поле боя, импорт .map или ИИ из документа
+          Empty battlefield, import .map, or AI generation
         </p>
         <div className="new-map-choice-actions">
           <button
@@ -30,9 +30,9 @@ export function NewMapChoiceModal({
             className="new-map-choice-card"
             onClick={onPickEmptyMap}
           >
-            <span className="new-map-choice-card-label">Пустая карта</span>
+            <span className="new-map-choice-card-label">Empty Map</span>
             <span className="new-map-choice-card-desc">
-              Чистое поле: узлы и связи добавляете вручную.
+              Blank canvas: add nodes and connections manually.
             </span>
           </button>
           <button
@@ -40,9 +40,9 @@ export function NewMapChoiceModal({
             className="new-map-choice-card primary"
             onClick={onPickAiGeneration}
           >
-            <span className="new-map-choice-card-label">ИИ из документа</span>
+            <span className="new-map-choice-card-label">AI Generation</span>
             <span className="new-map-choice-card-desc">
-              PDF, DOCX, TXT или Markdown: модель построит узлы и иерархию автоматически.
+              PDF, DOCX, TXT, or Markdown: model builds nodes and hierarchy automatically.
             </span>
           </button>
           <button
@@ -50,14 +50,14 @@ export function NewMapChoiceModal({
             className="new-map-choice-card"
             onClick={onPickImportMap}
           >
-            <span className="new-map-choice-card-label">Импорт .map</span>
+            <span className="new-map-choice-card-label">Import .map</span>
             <span className="new-map-choice-card-desc">
-              Восстановить карту из ранее экспортированного файла.
+              Restore a map from a previously exported file.
             </span>
           </button>
         </div>
         <button type="button" className="new-map-choice-cancel" onClick={onCancel}>
-          Отмена
+          Cancel
         </button>
       </div>
     </div>

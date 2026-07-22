@@ -5,65 +5,40 @@ Handles text-to-deck generation and other AI features
 import json
 import logging
 import re
-<<<<<<< HEAD
 import os
 from datetime import datetime
 from typing import Any, Optional
-=======
-from typing import Any
-
-<<<<<<< HEAD
->>>>>>> mac_changes
-=======
->>>>>>> mac_changes
 from openai import OpenAI
 
 from app.core.config import settings
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+logger = logging.getLogger(__name__)
+
 # Путь к файлу датасета (можно задать через переменную окружения)
 DATASET_PATH = os.environ.get("MENTAL_MAP_DATASET_PATH", "mental_map_dataset.jsonl")
-=======
-logger = logging.getLogger(__name__)
->>>>>>> mac_changes
-=======
-logger = logging.getLogger(__name__)
->>>>>>> mac_changes
 
 
 class AIAgentService:
     """Service for AI-powered features using Groq."""
 
     def __init__(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
-        """Initialize ProxyAPI client."""
-        if settings.PROXY_API_KEY: 
-=======
         """Initialize OpenAI-compatible client (chat + embeddings base URL)."""
         api_key = (settings.PROXY_API_KEY or settings.GROQ_API_KEY or "").strip()
         if api_key:
->>>>>>> mac_changes
-=======
-        """Initialize OpenAI-compatible client (chat + embeddings base URL)."""
-        api_key = (settings.PROXY_API_KEY or settings.GROQ_API_KEY or "").strip()
-        if api_key:
->>>>>>> mac_changes
             self.client = OpenAI(
                 base_url=settings.OPENAI_COMPAT_BASE_URL,
                 api_key=api_key,
             )
-            self.model = "gpt-5.4"
+            self.model = "gpt-4o"
         else:
             self.client = None
             self.model = None
 
     def is_available(self) -> bool:
         """Check if AI service is available."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        return self.client is not None and settings.PROXY_API_KEY != ""
+        return self.client is not None and bool(
+            (settings.PROXY_API_KEY or settings.GROQ_API_KEY or "").strip()
+        )
 
     def _save_to_dataset(
         self,
@@ -92,16 +67,6 @@ class AIAgentService:
         # Дописываем в файл
         with open(DATASET_PATH, "a", encoding="utf-8") as f:
             f.write(json.dumps(example, ensure_ascii=False) + "\n")
-=======
-        return self.client is not None and bool(
-            (settings.PROXY_API_KEY or settings.GROQ_API_KEY or "").strip()
-        )
->>>>>>> mac_changes
-=======
-        return self.client is not None and bool(
-            (settings.PROXY_API_KEY or settings.GROQ_API_KEY or "").strip()
-        )
->>>>>>> mac_changes
 
     def generate_deck_from_text(
         self, text: str, deck_title: str | None = None
@@ -116,7 +81,11 @@ class AIAgentService:
         if not self.is_available():
             raise ValueError("Groq API key not configured")
 
-        from app.services import rag_pipeline
+        try:
+            from app.services import rag_pipeline
+        except ImportError:
+            rag_pipeline = None
+            logger.warning("RAG pipeline not available")    
 
         evidence_section = ""
         if rag_pipeline.is_rag_embedding_configured() and len(text.strip()) >= 400:
@@ -249,7 +218,6 @@ class AIAgentService:
             result = {"map_title": title, "nodes": cleaned}
             
             # Сохраняем в датасет
-            # source можно передать при вызове (например, имя файла статьи)
             self._save_to_dataset(text, result, source=source)
             
             return result
@@ -259,6 +227,52 @@ class AIAgentService:
             if isinstance(e, ValueError):
                 raise
             raise ValueError(f"AI generation failed: {str(e)}")
+
+    def enhance_node(
+        self,
+        title: str,
+        description: str | None,
+        prompt: str,
+    ) -> dict[str, str | None]:
+        """Improve a single mental map node from user prompt."""
+        if not self.is_available():
+            raise ValueError("Groq API key not configured")
+
+        desc = (description or "").strip()
+        llm_prompt = (
+            f'Улучши этот узел: title: {title}, description: {desc}. '
+            f"Запрос пользователя: {prompt}. "
+            'Верни только новые title и description в JSON.'
+        )
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": llm_prompt}],
+                temperature=0.5,
+                max_completion_tokens=2000,
+            )
+            response_text = response.choices[0].message.content.strip()
+            response_text = re.sub(r"```json\n?", "", response_text)
+            response_text = re.sub(r"```\n?", "", response_text)
+            response_text = response_text.strip()
+
+            data = json.loads(response_text)
+            if not isinstance(data, dict):
+                raise ValueError("Invalid response format")
+
+            new_title = str(data.get("title", "")).strip()[:200]
+            if not new_title:
+                raise ValueError("AI did not return a valid title")
+
+            new_description = str(data.get("description", "")).strip()[:4000] or None
+            return {"title": new_title, "description": new_description}
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse AI response as JSON: {e}") from e
+        except Exception as e:
+            if isinstance(e, ValueError):
+                raise
+            raise ValueError(f"AI enhancement failed: {str(e)}") from e
 
 
 ai_agent_service = AIAgentService()

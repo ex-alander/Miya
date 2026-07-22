@@ -4,10 +4,10 @@ import { mentalMapService } from "../../services/mentalMap";
 import "./AIGenerationModal.css";
 
 const LOADING_PHRASES = [
-  "Пламя знаний разгорается…",
-  "Анализ сущности текста…",
-  "Разметка территории ума…",
-  "Искры связей вспыхивают…",
+  "Flame of knowledge ignites…",
+  "Analyzing text essence…",
+  "Mapping the territory of mind…",
+  "Sparks of connections flare up…",
 ];
 
 type Props = {
@@ -68,7 +68,7 @@ export function AIGenerationModal({
       setExtractedText(text);
       setTruncateWarn(warn);
     } catch {
-      onError("Не удалось извлечь текст из файла");
+      onError("Failed to extract text from file");
       setFile(null);
     } finally {
       setExtracting(false);
@@ -115,8 +115,8 @@ export function AIGenerationModal({
         typeof detail === "string"
           ? detail
           : err.response?.status === 503
-            ? "ИИ недоступен: проверьте ключ API (PROXY_API_KEY или GROQ_API_KEY) на сервере."
-            : "Не удалось сгенерировать карту";
+            ? "AI unavailable: check API key (PROXY_API_KEY or GROQ_API_KEY) on the server."
+            : "Failed to generate map";
       onError(msg);
     } finally {
       setLoading(false);
@@ -129,13 +129,13 @@ export function AIGenerationModal({
     <div className="ai-gen-overlay" onClick={onClose}>
       <div className="ai-gen-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ai-gen-header">
-          <h3 className="ai-gen-title">Проявление знаний</h3>
-          <button type="button" className="ai-gen-close" onClick={onClose} aria-label="Закрыть">
+          <h3 className="ai-gen-title">Knowledge Manifestation</h3>
+          <button type="button" className="ai-gen-close" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
         <p className="ai-gen-lead">
-          Перетащите PDF, DOCX, TXT или Markdown. Затем нажмите "Essence", чтобы ИИ построил карту на поле боя.
+          Drag & drop PDF, DOCX, TXT, or Markdown. Then click "Essence" to let AI build a map on the battlefield.
         </p>
 
         <div
@@ -161,12 +161,12 @@ export function AIGenerationModal({
             onChange={onPickFile}
           />
           {extracting ? (
-            <span className="ai-gen-drop-text">Чтение документа…</span>
+            <span className="ai-gen-drop-text">Reading document…</span>
           ) : file ? (
             <span className="ai-gen-drop-text">{file.name}</span>
           ) : (
             <span className="ai-gen-drop-text">
-              Нажмите или перетащите файл сюда
+              Click or drag a file here
             </span>
           )}
         </div>
@@ -177,13 +177,13 @@ export function AIGenerationModal({
           </div>
         )}
 
-        <label className="ai-gen-label">Название карты (необязательно)</label>
+        <label className="ai-gen-label">Map title (optional)</label>
         <input
           type="text"
           className="ai-gen-input"
           value={mapTitle}
           onChange={(e) => setMapTitle(e.target.value)}
-          placeholder="Подсказка для ИИ; иначе заголовок придумает модель"
+          placeholder="Hint for AI; otherwise model will generate a title"
           disabled={loading}
         />
 
@@ -199,7 +199,7 @@ export function AIGenerationModal({
 
         <div className="ai-gen-actions">
           <button type="button" className="ai-gen-cancel" onClick={onClose} disabled={loading}>
-            Отмена
+            Cancel
           </button>
           <button
             type="button"

@@ -112,3 +112,7 @@ class MentalMapGenerateFromTextRequest(BaseModel):
 
     text: str = Field(..., min_length=20, max_length=5000_000)
     title: str | None = Field(None, max_length=200)
+
+
+class NodeEnhanceRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=2000)

@@ -145,4 +145,16 @@ export const mentalMapService = {
     );
     return r.data;
   },
+
+  async enhanceNode(
+    mapId: number,
+    nodeId: number,
+    payload: { prompt: string }
+  ): Promise<MentalMapNode> {
+    const r = await api.post<MentalMapNode>(
+      `/mental-maps/${mapId}/nodes/${nodeId}/enhance`,
+      payload
+    );
+    return r.data;
+  },
 };

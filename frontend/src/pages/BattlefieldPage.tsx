@@ -37,6 +37,17 @@ const REPARENT_ANIM_MS = 300;
 const OVERLAP_PUSH = 20;
 const OVERLAP_EASING_MS = 200;
 
+// 🔥 ГЛОБАЛЬНЫЕ КОНСТАНТЫ ДЛЯ ЗУМА
+const MIN_SCALE = 0.05;
+const MAX_SCALE = 100.0;
+const ZOOM_STEP = 0.15;
+
+// 🔥 КОНСТАНТЫ ДЛЯ ВИЗУАЛЬНЫХ ИЗМЕНЕНИЙ
+const MIN_NODE_SIZE = 0.6;
+const MAX_NODE_SIZE = 2.0;
+const MIN_LINE_WIDTH = 1;
+const MAX_LINE_WIDTH = 8;
+
 function rectsOverlap(
   a: { x: number; y: number; w: number; h: number },
   b: { x: number; y: number; w: number; h: number }
@@ -70,6 +81,7 @@ function pushApart(
   positions.set(nodeA, na);
   positions.set(nodeB, nb);
 }
+
 const VIEWPORT_KEY = "battlefield_viewport";
 
 type UndoAction =
@@ -142,17 +154,21 @@ function nextMastery(mastery: MasteryState): MasteryState {
   return "unconquered";
 }
 
-function loadViewport(mapId: number): { x: number; y: number; scale: number } {
+function loadViewport(mapId: number): { x: number; y: number; scale: number } | null {
   try {
     const raw = localStorage.getItem(`${VIEWPORT_KEY}_${mapId}`);
     if (raw) {
       const p = JSON.parse(raw);
-      return { x: p.x ?? 0, y: p.y ?? 0, scale: Math.max(0.25, Math.min(2, p.scale ?? 1)) };
+      return { 
+        x: p.x ?? 0, 
+        y: p.y ?? 0, 
+        scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, p.scale ?? 1)) 
+      };
     }
   } catch {
     /* ignore */
   }
-  return { x: 0, y: 0, scale: 1 };
+  return null;
 }
 
 function saveViewport(mapId: number, x: number, y: number, scale: number) {
@@ -178,6 +194,22 @@ function formatRelativeTime(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
   return d.toLocaleDateString();
+}
+
+// 🔥 ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ РАЗМЕРА УЗЛА НА ОСНОВЕ ГЛУБИНЫ
+function getNodeSize(depth: number, maxDepth: number): number {
+  if (maxDepth === 0) return 1.2;
+  const normalizedDepth = depth / maxDepth;
+  // От 1.2 (корень) до 0.7 (листья)
+  return Math.max(MIN_NODE_SIZE, Math.min(MAX_NODE_SIZE, 1.2 - normalizedDepth * 0.5));
+}
+
+// 🔥 ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ ТОЛЩИНЫ ЛИНИИ НА ОСНОВЕ ГЛУБИНЫ
+function getLineWidth(depth: number, maxDepth: number): number {
+  if (maxDepth === 0) return MAX_LINE_WIDTH;
+  const normalizedDepth = depth / maxDepth;
+  // От 6 (корень) до 1.5 (листья)
+  return Math.max(MIN_LINE_WIDTH, Math.min(MAX_LINE_WIDTH, MAX_LINE_WIDTH - normalizedDepth * 5));
 }
 
 export default function BattlefieldPage() {
@@ -206,9 +238,7 @@ export default function BattlefieldPage() {
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [panning, setPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [transform, setTransform] = useState(() =>
-    id ? loadViewport(id) : { x: 0, y: 0, scale: 1 }
-  );
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [editingNode, setEditingNode] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [dropTarget, setDropTarget] = useState<number | null>(null);
@@ -244,11 +274,15 @@ export default function BattlefieldPage() {
   const [aiGenerationOpen, setAiGenerationOpen] = useState(false);
   const [nodePopup, setNodePopup] = useState<NodePopupState | null>(null);
   const [editNodeDraft, setEditNodeDraft] = useState<EditNodeDraft | null>(null);
+  const [enhanceNode, setEnhanceNode] = useState<MentalMapNode | null>(null);
+  const [enhancePrompt, setEnhancePrompt] = useState("");
+  const [enhanceLoading, setEnhanceLoading] = useState(false);
   const importMapInputRef = useRef<HTMLInputElement>(null);
   const didPanRef = useRef(false);
   const dragMovedRef = useRef(false);
   const nodeClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHandledStudyDeckRef = useRef<number | null>(null);
+  const hasCenteredRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -344,17 +378,51 @@ export default function BattlefieldPage() {
       const depthMap = computeDepthMap(data.nodes);
       const maxD = Math.max(0, ...depthMap.values());
       setLevel((l) => Math.min(l, maxD));
-      setTransform((t) => (t.scale ? t : loadViewport(id)));
+      
+      const saved = loadViewport(id);
+      if (saved) {
+        setTransform(saved);
+      } else {
+        setTransform({ x: 0, y: 0, scale: 1 });
+      }
     } catch (e) {
       setError("Failed to load map");
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, navigate, refreshDeckStatuses]);
 
   useEffect(() => {
     loadMap();
+    hasCenteredRef.current = false;
   }, [loadMap]);
+
+  const centerOnRoot = useCallback(() => {
+    if (!map || !containerRef.current || hasCenteredRef.current) return;
+
+    const rootNode = map.nodes.find(n => n.parent_id === null);
+    if (!rootNode) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    const targetScale = 1.2;
+    const newX = rect.width / 2 - rootNode.x * targetScale;
+    const newY = rect.height / 2 - rootNode.y * targetScale;
+
+    setTransform({
+      scale: targetScale,
+      x: newX,
+      y: newY,
+    });
+    hasCenteredRef.current = true;
+  }, [map, containerRef]);
+
+  useEffect(() => {
+    if (!map || !containerRef.current) return;
+    const timer = setTimeout(() => centerOnRoot(), 100);
+    return () => clearTimeout(timer);
+  }, [map, containerRef, centerOnRoot]);
 
   useEffect(() => {
     const state = location.state as
@@ -575,10 +643,12 @@ export default function BattlefieldPage() {
     (e: PointerEvent) => {
       if (panning && containerRef.current) {
         didPanRef.current = true;
-        setTransform((t) => ({
-          ...t,
-          x: t.x + (e.clientX - panStart.x)*8,
-          y: t.y + (e.clientY - panStart.y)*8,
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        setTransform((prev) => ({
+          ...prev,
+          x: prev.x + 7.2* dx,
+          y: prev.y + 7.2*dy,
         }));
         setPanStart({ x: e.clientX, y: e.clientY });
         return;
@@ -615,7 +685,7 @@ export default function BattlefieldPage() {
         }
       }
     },
-    [panning, panStart, draggingNode, dragOffset, map, visibleNodes, screenToMap, dropTarget]
+    [panning, panStart, draggingNode, dragOffset, map, visibleNodes, screenToMap]
   );
 
   const handlePointerUp = useCallback(
@@ -752,32 +822,28 @@ export default function BattlefieldPage() {
   }, [handlePointerMove, handlePointerUp]);
 
   const handleWheel = useCallback((e: WheelEvent) => {
-    const el = containerRef.current;
-    if (!el) return;
-    
+    const container = containerRef.current;
+    if (!container) return;
+
     e.preventDefault();
-    
-    const rect = el.getBoundingClientRect();
-    const cursorX = e.clientX - rect.left;
-    const cursorY = e.clientY - rect.top;
-    
-    const delta = e.deltaY > 0 ? -0.3 : 0.3;
-    const newScale = Math.max(0.05, Math.min(20, transform.scale + delta));
-    
-    // Координаты курсора в системе координат карты
-    const mouseWorldX = (cursorX - transform.x) / transform.scale;
-    const mouseWorldY = (cursorY - transform.y) / transform.scale;
-    
-    // Новые координаты viewport
-    const newX = cursorX - mouseWorldX * newScale;
-    const newY = cursorY - mouseWorldY * newScale;
-    
-    setTransform({
-      scale: newScale,
-      x: newX,
-      y: newY,
+
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+
+    setTransform((prev) => {
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, prev.scale + delta));
+      const mouseWorldX = (mouseX - prev.x) / prev.scale;
+      const mouseWorldY = (mouseY - prev.y) / prev.scale;
+      return {
+        scale: newScale,
+        x: mouseX - mouseWorldX * newScale,
+        y: mouseY - mouseWorldY * newScale,
+      };
     });
-  }, [transform, containerRef]);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -794,21 +860,17 @@ export default function BattlefieldPage() {
     const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const sx = cx / rect.width;
-    const sy = cy / rect.height;
-    const newScale = Math.max(0.25, Math.min(2, transform.scale + delta));
-    const viewW = rect.width / transform.scale;
-    const viewH = rect.height / transform.scale;
-    const focusX = transform.x + sx * viewW;
-    const focusY = transform.y + sy * viewH;
-    const newViewW = rect.width / newScale;
-    const newViewH = rect.height / newScale;
-    setTransform({
-      scale: newScale,
-      x: focusX - sx * newViewW,
-      y: focusY - sy * newViewH,
+    const mouseX = rect.width / 2;
+    const mouseY = rect.height / 2;
+    setTransform((prev) => {
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, prev.scale + delta));
+      const mouseWorldX = (mouseX - prev.x) / prev.scale;
+      const mouseWorldY = (mouseY - prev.y) / prev.scale;
+      return {
+        scale: newScale,
+        x: mouseX - mouseWorldX * newScale,
+        y: mouseY - mouseWorldY * newScale,
+      };
     });
   };
 
@@ -866,7 +928,7 @@ export default function BattlefieldPage() {
     if (!map || !editNodeDraft) return;
     const title = editNodeDraft.title.trim();
     if (!title) {
-      showToast("Название узла не может быть пустым", "error");
+      showToast("Node title cannot be empty", "error");
       return;
     }
     try {
@@ -880,7 +942,25 @@ export default function BattlefieldPage() {
         prev && prev.nodeId === editNodeDraft.nodeId ? { ...prev, nodeId: editNodeDraft.nodeId } : prev
       );
     } catch {
-      showToast("Не удалось обновить узел", "error");
+      showToast("Failed to update node", "error");
+    }
+  };
+
+  const handleEnhanceNode = async () => {
+    if (!map || !enhanceNode || !enhancePrompt.trim()) return;
+    setEnhanceLoading(true);
+    try {
+      await mentalMapService.enhanceNode(map.id, enhanceNode.id, {
+        prompt: enhancePrompt.trim(),
+      });
+      setEnhanceNode(null);
+      setEnhancePrompt("");
+      await loadMap();
+      showToast("Node enhanced successfully", "success");
+    } catch {
+      showToast("Failed to enhance node", "error");
+    } finally {
+      setEnhanceLoading(false);
     }
   };
 
@@ -888,20 +968,20 @@ export default function BattlefieldPage() {
     if (!map) return;
     const subtree = getSubtreeNodes(map.nodes, rootNode.id);
     if (subtree.length === 0) {
-      showToast("Ветка пуста", "error");
+      showToast("Branch is empty", "error");
       return;
     }
     try {
       const deck = await deckService.create({
-        title: `Ветка: ${rootNode.title}`.slice(0, 120),
-        description: "Временная колода для изучения ветви карты",
+        title: `Branch: ${rootNode.title}`.slice(0, 120),
+        description: "Temporary deck for studying map branch",
         is_public: false,
       });
       await cardService.createBulk({
         deck_id: deck.id,
         items: subtree.map((n, index) => ({
           front_content: n.title,
-          back_content: (n.description ?? "").trim() || "Без описания",
+          back_content: (n.description ?? "").trim() || "No description",
           order_index: index,
         })),
       });
@@ -909,12 +989,11 @@ export default function BattlefieldPage() {
       setContextMenu(null);
       setNodePopup(null);
     } catch {
-      showToast("Не удалось запустить изучение ветви", "error");
+      showToast("Failed to start branch study", "error");
     }
   };
 
   const handleNodeClick = (node: MentalMapNode) => {
-    // onClick fires after onDoubleClick too; delay to allow double-click to win.
     if (dragMovedRef.current) return;
 
     if (nodeClickTimerRef.current) clearTimeout(nodeClickTimerRef.current);
@@ -994,7 +1073,7 @@ export default function BattlefieldPage() {
         navigate(`/battlefield/${created.id}`);
       }
     } catch {
-      showToast("Не удалось удалить карту", "error");
+      showToast("Failed to delete map", "error");
     }
   };
 
@@ -1167,6 +1246,11 @@ export default function BattlefieldPage() {
                   const y1 = py + NODE_HEIGHT;
                   const x2 = n.displayX + NODE_WIDTH / 2;
                   const y2 = n.displayY;
+                  
+                  // 🔥 ВЫЧИСЛЯЕМ ТОЛЩИНУ ЛИНИИ НА ОСНОВЕ ГЛУБИНЫ
+                  const parentDepth = depthMap.get(parent.id) ?? 0;
+                  const lineWidth = getLineWidth(parentDepth, maxDepth);
+                  
                   return (
                     <line
                       key={`edge-${n.id}`}
@@ -1174,6 +1258,7 @@ export default function BattlefieldPage() {
                       y1={y1}
                       x2={x2}
                       y2={y2}
+                      strokeWidth={lineWidth}
                       className={`battlefield-edge ${dropTarget === n.id ? "active" : ""}`}
                     />
                   );
@@ -1195,6 +1280,22 @@ export default function BattlefieldPage() {
                       ? "deck-mastered"
                       : ""
                   : "";
+              
+              // 🔥 ВЫЧИСЛЯЕМ РАЗМЕР УЗЛА НА ОСНОВЕ ГЛУБИНЫ
+              const nodeDepth = depthMap.get(node.id) ?? 0;
+              const sizeMultiplier = getNodeSize(nodeDepth, maxDepth);
+              const scaledWidth = NODE_WIDTH * sizeMultiplier;
+              const scaledHeight = NODE_HEIGHT * sizeMultiplier;
+              const fontSize = Math.max(9, Math.min(14, 11 * sizeMultiplier));
+
+              // 🔥 НОВЫЙ КОД - ВЫЧИСЛЯЕМ ЦВЕТ НА ОСНОВЕ ГЛУБИНЫ
+              const maxDepthForColor = Math.max(1, maxDepth);
+              const depthRatio = nodeDepth / maxDepthForColor;
+              // От темно-красного (корень) к текущему цвету (листья)
+              const r = Math.round(35 + (220 - 35) * depthRatio);
+              const g = Math.round(18 + (18 - 18) * depthRatio);
+              const b = Math.round(12 + (12 - 12) * depthRatio);
+              const nodeColor = `rgba(${r}, ${g}, ${b}, 0.95)`;
 
               return (
                 <g
@@ -1214,10 +1315,23 @@ export default function BattlefieldPage() {
                     setContextMenu({ x: e.clientX, y: e.clientY, type: "node", node });
                   }}
                 >
-                  <rect x={3} y={3} width={NODE_WIDTH} height={NODE_HEIGHT} rx={4} className="battlefield-node-shadow" />
-                  <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx={4} className="battlefield-node-rect" />
+                  <rect 
+                    x={3} 
+                    y={3} 
+                    width={scaledWidth} 
+                    height={scaledHeight} 
+                    rx={4} 
+                    className="battlefield-node-shadow" 
+                  />
+                  <rect 
+                    width={scaledWidth} 
+                    height={scaledHeight} 
+                    rx={4} 
+                    className="battlefield-node-rect" 
+                    fill={nodeColor}
+                  />
                   {editingNode === node.id ? (
-                    <foreignObject x={4} y={8} width={NODE_WIDTH - 8} height={24}>
+                    <foreignObject x={4} y={8} width={scaledWidth - 8} height={24}>
                       <input
                         type="text"
                         value={editTitle}
@@ -1229,10 +1343,11 @@ export default function BattlefieldPage() {
                         }}
                         autoFocus
                         className="battlefield-node-input"
+                        style={{ fontSize: `${fontSize}px` }}
                       />
                     </foreignObject>
                   ) : (
-                    <foreignObject x={4} y={8} width={NODE_WIDTH - 8} height={NODE_HEIGHT - 16}>
+                    <foreignObject x={4} y={8} width={scaledWidth - 8} height={scaledHeight - 16}>
                       <div
                         style={{
                           width: '100%',
@@ -1244,7 +1359,7 @@ export default function BattlefieldPage() {
                           wordWrap: 'break-word',
                           whiteSpace: 'normal',
                           wordBreak: 'break-word',
-                          fontSize: '11px',
+                          fontSize: `${fontSize}px`,
                           fontWeight: 600,
                           color: 'white',
                           padding: '4px',
@@ -1258,10 +1373,11 @@ export default function BattlefieldPage() {
                     </foreignObject>
                   )}
                   <text
-                    x={NODE_WIDTH / 2}
-                    y={48}
+                    x={scaledWidth / 2}
+                    y={scaledHeight - 8}
                     textAnchor="middle"
                     className="battlefield-node-stars"
+                    style={{ fontSize: `${Math.max(8, 10 * sizeMultiplier)}px` }}
                     onClick={(e) => {
                       if ((node.node_type ?? "simple") === "deck") return;
                       e.stopPropagation();
@@ -1277,8 +1393,11 @@ export default function BattlefieldPage() {
         </svg>
 
         <div className="battlefield-zoom-controls">
-          <button type="button" className="battlefield-zoom-btn" onClick={() => zoomBy(0.15)} title="Zoom in">+</button>
-          <button type="button" className="battlefield-zoom-btn" onClick={() => zoomBy(-0.15)} title="Zoom out">−</button>
+          <button type="button" className="battlefield-zoom-btn" onClick={() => zoomBy(ZOOM_STEP)} title="Zoom in">+</button>
+          <button type="button" className="battlefield-zoom-btn" onClick={() => zoomBy(-ZOOM_STEP)} title="Zoom out">−</button>
+          <div className="battlefield-zoom-indicator">
+            
+          </div>
           <div className="battlefield-depth-vertical">
             <input
               type="range"
@@ -1305,11 +1424,11 @@ export default function BattlefieldPage() {
           >
             <div className="battlefield-node-popup-header">
               <h4>{popupNode.title}</h4>
-              <button type="button" onClick={() => setNodePopup(null)} aria-label="Закрыть">
+              <button type="button" onClick={() => setNodePopup(null)} aria-label="Close">
                 ×
               </button>
             </div>
-            <p>{popupNode.description?.trim() || "Описание отсутствует"}</p>
+            <p>{popupNode.description?.trim() || "No description"}</p>
           </div>
         );
       })()}
@@ -1321,7 +1440,7 @@ export default function BattlefieldPage() {
             onClick={() => setContextMenu(null)}
             onContextMenu={(e) => {
               e.preventDefault();
-              setContextMenu(null); // optional: close menu on right-click
+              setContextMenu(null);
             }}
           />
           <div
@@ -1373,14 +1492,23 @@ export default function BattlefieldPage() {
                     setContextMenu(null);
                   }}
                 >
-                  Редактировать карту
+                  Edit Node
                 </button>
                 <button
                   onClick={() => {
                     void handleStudyBranch(contextMenu.node);
                   }}
                 >
-                  Изучить ветвь
+                  Study Branch
+                </button>
+                <button
+                  onClick={() => {
+                    setEnhanceNode(contextMenu.node);
+                    setEnhancePrompt("");
+                    setContextMenu(null);
+                  }}
+                >
+                  Enhance Node
                 </button>
                 <button
                   onClick={() => {
@@ -1504,10 +1632,10 @@ export default function BattlefieldPage() {
             const { title, nodes } = parseMapImportFile(text);
             const data = await mentalMapService.importMap({ title, nodes });
             setNewMapFlow(null);
-            showToast("Карта импортирована", "success");
+            showToast("Map imported successfully", "success");
             navigate(`/battlefield/${data.id}`);
           } catch {
-            showToast("Неверный файл .map", "error");
+            showToast("Invalid .map file", "error");
           }
         }}
       />
@@ -1533,7 +1661,7 @@ export default function BattlefieldPage() {
         isOpen={aiGenerationOpen}
         onClose={() => setAiGenerationOpen(false)}
         onComplete={(mapId) => {
-          showToast("Карта сгенерирована", "success");
+          showToast("Map generated successfully", "success");
           navigate(`/battlefield/${mapId}`);
         }}
         onError={(msg) => showToast(msg, "error")}
@@ -1542,18 +1670,18 @@ export default function BattlefieldPage() {
       {emptyMapPromptOpen && (
         <FireConfirmModal
           isOpen
-          title="Новая карта"
-          message="Назовите поле боя (необязательно)."
-          confirmText="Создать"
-          cancelText="Отмена"
+          title="New Map"
+          message="Name your battlefield (optional)."
+          confirmText="Create"
+          cancelText="Cancel"
           prompt
-          promptPlaceholder="Название карты"
+          promptPlaceholder="Map name"
           onConfirm={(v) => {
             setEmptyMapPromptOpen(false);
             mentalMapService
               .create({ title: v?.trim() || undefined })
               .then((created) => navigate(`/battlefield/${created.id}`))
-              .catch(() => showToast("Не удалось создать карту", "error"));
+              .catch(() => showToast("Failed to create map", "error"));
           }}
           onCancel={() => setEmptyMapPromptOpen(false)}
         />
@@ -1562,9 +1690,9 @@ export default function BattlefieldPage() {
       {confirmModal && (
         <FireConfirmModal
           isOpen
-          title={confirmModal.type === "deleteMap" ? "Удалить карту" : "Delete Territory"}
+          title={confirmModal.type === "deleteMap" ? "Delete Map" : "Delete Territory"}
           message={confirmModal.type === "deleteMap"
-            ? `Удалить карту "${map!.title}"? Это действие нельзя отменить.`
+            ? `Delete map "${map!.title}"? This cannot be undone.`
             : (() => {
               const n = confirmModal.node;
               const count = getDescendantIds(map!.nodes, n.id).size;
@@ -1572,8 +1700,8 @@ export default function BattlefieldPage() {
                 ? `Delete "${n.title}" and all ${count} descendant(s)? This cannot be undone.`
                 : `Delete "${n.title}"? This cannot be undone.`;
             })()}
-          confirmText={confirmModal.type === "deleteMap" ? "Удалить карту" : "Delete"}
-          cancelText={confirmModal.type === "deleteMap" ? "Отмена" : "Cancel"}
+          confirmText={confirmModal.type === "deleteMap" ? "Delete Map" : "Delete"}
+          cancelText={confirmModal.type === "deleteMap" ? "Cancel" : "Cancel"}
           variant="danger"
           onConfirm={() => {
             if (confirmModal.type === "deleteMap") {
@@ -1586,35 +1714,103 @@ export default function BattlefieldPage() {
         />
       )}
 
+      {enhanceNode && (
+        <>
+          <div
+            className="battlefield-context-overlay"
+            onClick={() => {
+              if (!enhanceLoading) {
+                setEnhanceNode(null);
+                setEnhancePrompt("");
+              }
+            }}
+          />
+          <div className="battlefield-settings-modal">
+            <h3>Enhance Node</h3>
+            <p className="battlefield-enhance-node-title">{enhanceNode.title}</p>
+            <div className="battlefield-enhance-hints">
+              <button
+                type="button"
+                disabled={enhanceLoading}
+                onClick={() => setEnhancePrompt("Add example")}
+              >
+                Add example
+              </button>
+              <button
+                type="button"
+                disabled={enhanceLoading}
+                onClick={() => setEnhancePrompt("Simplify description")}
+              >
+                Simplify description
+              </button>
+              <button
+                type="button"
+                disabled={enhanceLoading}
+                onClick={() => setEnhancePrompt("Link to neighboring node")}
+              >
+                Link to neighboring node
+              </button>
+            </div>
+            <label>AI Prompt</label>
+            <textarea
+              className="battlefield-settings-textarea"
+              value={enhancePrompt}
+              onChange={(e) => setEnhancePrompt(e.target.value)}
+              placeholder="Describe how to enhance the node"
+              disabled={enhanceLoading}
+            />
+            <div className="battlefield-settings-actions">
+              <Button
+                variant="secondary"
+                disabled={enhanceLoading}
+                onClick={() => {
+                  setEnhanceNode(null);
+                  setEnhancePrompt("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                disabled={enhanceLoading || !enhancePrompt.trim()}
+                onClick={() => void handleEnhanceNode()}
+              >
+                {enhanceLoading ? "Enhancing…" : "Enhance"}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
       {editNodeDraft && (
         <>
           <div className="battlefield-context-overlay" onClick={() => setEditNodeDraft(null)} />
           <div className="battlefield-settings-modal">
-            <h3>Редактировать узел</h3>
-            <label>Название</label>
+            <h3>Edit Node</h3>
+            <label>Title</label>
             <input
               type="text"
               value={editNodeDraft.title}
               onChange={(e) =>
                 setEditNodeDraft((prev) => (prev ? { ...prev, title: e.target.value } : prev))
               }
-              placeholder="Название узла"
+              placeholder="Node title"
             />
-            <label>Описание</label>
+            <label>Description</label>
             <textarea
               className="battlefield-settings-textarea"
               value={editNodeDraft.description}
               onChange={(e) =>
                 setEditNodeDraft((prev) => (prev ? { ...prev, description: e.target.value } : prev))
               }
-              placeholder="Краткое описание узла"
+              placeholder="Brief node description"
             />
             <div className="battlefield-settings-actions">
               <Button variant="secondary" onClick={() => setEditNodeDraft(null)}>
-                Отмена
+                Cancel
               </Button>
               <Button variant="primary" onClick={() => void handleSaveNodeDetails()}>
-                Сохранить
+                Save
               </Button>
             </div>
           </div>
@@ -1641,7 +1837,7 @@ export default function BattlefieldPage() {
                   downloadMapFile(buildMapExportFile(map), map.title);
                 }}
               >
-                Экспорт .map
+                Export .map
               </Button>
             </div>
             <div className="battlefield-settings-actions">
@@ -1649,7 +1845,7 @@ export default function BattlefieldPage() {
                 Cancel
               </Button>
               <Button variant="danger" onClick={() => setConfirmModal({ type: "deleteMap" })}>
-                Удалить карту
+                Delete Map
               </Button>
               <Button variant="primary" onClick={handleUpdateMapTitle}>
                 Save

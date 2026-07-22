@@ -460,6 +460,34 @@
   justify-content: flex-end;
 }
 
+.battlefield-enhance-node-title {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.battlefield-enhance-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.battlefield-enhance-hints button {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid rgba(214, 178, 94, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.battlefield-enhance-hints button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Layout — sidebar overlays, does not shift content */
 .battlefield-layout {
   display: flex;

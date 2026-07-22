@@ -1,185 +1,144 @@
-"""Layout coordinates for AI-generated mental map nodes (battlefield constants match frontend)."""
-
-from __future__ import annotations
-
 import math
-from collections import deque
+from typing import Optional
 
-MAP_WIDTH = 15000.0
-MAP_HEIGHT = 10000.0
-NODE_WIDTH = 140.0
-NODE_HEIGHT = 72.0
+# Карта 15000×10000, узлы 140×72
+MAP_WIDTH = 15000
+MAP_HEIGHT = 10000
+NODE_WIDTH = 140
+NODE_HEIGHT = 72
 
-# Радиальные параметры — расстояния увеличены в 5 раз
-START_RADIUS = 500.0      # Было 200 → 1000
-RADIUS_STEP = 400.0        # Было 180 → 900
-ANGLE_START = -math.pi / 2  # -90 градусов (вверх) — можно вращать
-BEND_FACTOR = 0.6          # Смягчение углов
+# Параметры раскладки
+LEVEL_SPACING = 260.0      # расстояние между уровнями по радиусу
 
 
-def _clamp(x: float, lo: float, hi: float) -> float:
-    return max(lo, min(hi, x))
+class _TreeNode:
+    def __init__(self, id: int, parent: Optional['_TreeNode'] = None):
+        self.id = id
+        self.parent = parent
+        self.children: list['_TreeNode'] = []
+        self.x = 0.0          # Центральный угол (в радианах)
+        self.y = 0.0          # Глубина (уровень)
+        self.weight = 1       # Количество листьев в поддереве
 
 
-def _angle_distribution(total_children: int, idx: int, parent_angle: float) -> float:
-    """Равномерно распределяет детей по дуге, центрированной вокруг угла родителя."""
-    if total_children <= 1:
-        return parent_angle
+def _build_tree(parent_of: list[int | None]) -> Optional[_TreeNode]:
+    n = len(parent_of)
+    nodes = [_TreeNode(i) for i in range(n)]
+    root = None
+    for i, p in enumerate(parent_of):
+        if p is None:
+            root = nodes[i]
+        elif 0 <= p < n:
+            nodes[p].children.append(nodes[i])
+            nodes[i].parent = nodes[p]
+    return root
+
+
+def _compute_depth(parent_of: list[int | None]) -> list[int]:
+    depth = [0] * len(parent_of)
+    for i in range(len(parent_of)):
+        d = 0
+        cur = i
+        while parent_of[cur] is not None:
+            cur = parent_of[cur]
+            d += 1
+        depth[i] = d
+    return depth
+
+
+def _compute_weights(node: _TreeNode) -> int:
+    if not node.children:
+        node.weight = 1
+        return 1
     
-    # Угловой размах дуги — чем больше детей, тем шире
-    span = min(math.pi * BEND_FACTOR, math.pi / 2 + (total_children - 1) * 0.15)
+    total = 0
+    for child in node.children:
+        total += _compute_weights(child)
     
-    # Начальный угол (сдвинут влево от родительского)
-    start = parent_angle - span / 2
+    node.weight = total
+    return total
+
+
+def _layout_radial_circular(node: _TreeNode, parent_angle: float, sector_width: float, depth: int):
+    """
+    Радиальная раскладка: дети окружают родителя.
+    Узел получает свой угол = parent_angle.
+    А его дети распределяются внутри сектора sector_width, центрированного вокруг parent_angle.
+    """
+    node.y = depth
+    node.x = parent_angle
+
+    if not node.children:
+        return
+
+    total_weight = node.weight
     
-    # Шаг между детьми
-    step = span / (total_children - 1) if total_children > 1 else 0
-    
-    return start + idx * step
+    # Если у родителя всего 1 ребенок, он просто продолжает направление родителя.
+    if len(node.children) == 1:
+        child_sector = sector_width 
+        _layout_radial_circular(node.children[0], parent_angle, child_sector, depth + 1)
+    else:
+        # Делим сектор между детьми строго пропорционально их весам
+        start_angle = parent_angle - sector_width / 2
+        end_angle = parent_angle + sector_width / 2
+        
+        current_angle = start_angle
+        for child in node.children:
+            child_share = (sector_width * (child.weight / total_weight))
+            child_angle = current_angle + child_share / 2 
+            
+            _layout_radial_circular(child, child_angle, child_share, depth + 1)
+            current_angle += child_share
 
 
 def compute_node_positions(parent_of: list[int | None]) -> list[tuple[float, float]]:
     """
-    Радиальная раскладка дерева: корень в центре, ветви расходятся во все стороны.
-    parent_of[i] — 0-based индекс родителя, или None для корня.
-    Возвращает список (x, y) для каждого узла (верхний левый угол).
+    Радиальная раскладка с полным заполнением эллипса (для широких экранов).
     """
-    n = len(parent_of)
-    if n == 0:
+    if not parent_of:
         return []
 
-    # === 1. Построение дерева ===
-    children: list[list[int]] = [[] for _ in range(n)]
-    roots: list[int] = []
-    for i, p in enumerate(parent_of):
-        if p is None or p < 0 or p >= n or p == i:
-            roots.append(i)
-        else:
-            children[p].append(i)
+    n = len(parent_of)
+    root = _build_tree(parent_of)
+    if not root:
+        return [(MAP_WIDTH / 2, MAP_HEIGHT / 2)] * n
 
-    if not roots and n > 0:
-        roots = [0]
-
-    # === 2. Определение глубины (BFS) ===
-    depth = [0] * n
-    max_depth = 0
-    visited = [False] * n
-    q = deque()
-    for r in roots:
-        depth[r] = 0
-        visited[r] = True
-        q.append(r)
-    while q:
-        u = q.popleft()
-        max_depth = max(max_depth, depth[u])
-        for v in children[u]:
-            if not visited[v]:
-                depth[v] = depth[u] + 1
-                visited[v] = True
-                q.append(v)
-    for i in range(n):
-        if not visited[i]:
-            depth[i] = 0
-            roots.append(i)
-            visited[i] = True
-
-    # === 3. Вычисление весов поддеревьев (количество узлов) ===
-    weight = [1] * n
-    for u in range(n - 1, -1, -1):
-        if children[u]:
-            weight[u] = sum(weight[c] for c in children[u])
-
-    # === 4. Радиальная раскладка ===
-    pos: list[tuple[float, float]] = [(0.0, 0.0)] * n
+    # 1. Вычисляем глубину и веса
+    depth = _compute_depth(parent_of)
+    _compute_weights(root)
     
-    center_x = MAP_WIDTH / 2 - NODE_WIDTH / 2
-    center_y = MAP_HEIGHT / 2 - NODE_HEIGHT / 2
-    
-    # Углы для множественных корней
-    root_angles: list[float] = []
-    if len(roots) > 1:
-        total_weight = sum(weight[r] for r in roots)
-        acc = 0.0
-        for r in roots:
-            angle_span = 2 * math.pi * (weight[r] / total_weight)
-            root_angles.append(acc + angle_span / 2)
-            acc += angle_span
-    else:
-        root_angles = [ANGLE_START]
+    # 2. Запускаем полную круговую раскладку.
+    FULL_CIRCLE = 2 * math.pi
+    _layout_radial_circular(root, 0.0, FULL_CIRCLE, 0)
 
-    def place_node(u: int, parent_angle: float, is_root: bool = False):
-        d = depth[u]
-        radius = START_RADIUS + d * RADIUS_STEP
-        
-        if is_root:
-            angle = parent_angle
-        else:
-            angle = parent_angle
-        
-        cx = center_x + radius * math.cos(angle)
-        cy = center_y + radius * math.sin(angle)
-        
-        x = _clamp(cx - NODE_WIDTH / 2, 0, MAP_WIDTH - NODE_WIDTH)
-        y = _clamp(cy - NODE_HEIGHT / 2, 0, MAP_HEIGHT - NODE_HEIGHT)
-        pos[u] = (x, y)
-        
-        if children[u]:
-            n_children = len(children[u])
-            for idx, child in enumerate(children[u]):
-                child_angle = _angle_distribution(n_children, idx, angle)
-                place_node(child, child_angle)
+    # 3. Собираем позиции в словарь
+    def collect(node: _TreeNode, positions: dict):
+        positions[node.id] = (node.x, node.y)
+        for child in node.children:
+            collect(child, positions)
 
-    for idx, r in enumerate(roots):
-        angle = root_angles[idx] if root_angles else ANGLE_START + idx * (2 * math.pi / len(roots))
-        place_node(r, angle, is_root=True)
+    temp: dict[int, tuple[float, float]] = {}
+    collect(root, temp)
 
-    # === 5. Пост-обработка: разрешение коллизий ===
-    for _iter in range(5):
-        moved = False
-        for u in range(n):
-            if not children[u]:
-                continue
-            
-            child_positions = [pos[c] for c in children[u]]
-            if not child_positions:
-                continue
-            
-            # Центр детей
-            cx_children = sum(p[0] + NODE_WIDTH/2 for p in child_positions) / len(child_positions)
-            cy_children = sum(p[1] + NODE_HEIGHT/2 for p in child_positions) / len(child_positions)
-            
-            # Родительский центр
-            parent_cx = pos[u][0] + NODE_WIDTH/2
-            parent_cy = pos[u][1] + NODE_HEIGHT/2
-            
-            dx_child = cx_children - parent_cx
-            dy_child = cy_children - parent_cy
-            dist = math.hypot(dx_child, dy_child)
-            
-            # Если дети слишком далеко — подтягиваем
-            target_dist = RADIUS_STEP * 1.2
-            if dist > target_dist and dist > 0.01:
-                factor = 0.15
-                for c in children[u]:
-                    cx = pos[c][0] + NODE_WIDTH/2
-                    cy = pos[c][1] + NODE_HEIGHT/2
-                    new_cx = cx - dx_child * factor
-                    new_cy = cy - dy_child * factor
-                    new_x = _clamp(new_cx - NODE_WIDTH/2, 0, MAP_WIDTH - NODE_WIDTH)
-                    new_y = _clamp(new_cy - NODE_HEIGHT/2, 0, MAP_HEIGHT - NODE_HEIGHT)
-                    if (new_x, new_y) != pos[c]:
-                        pos[c] = (new_x, new_y)
-                        moved = True
-        
-        if not moved:
-            break
-
-    # === 6. Финальная зачистка ===
+    # 4. Преобразуем угол и глубину в декартовы координаты с ГОРИЗОНТАЛЬНЫМ РАСТЯЖЕНИЕМ
+    result: list[tuple[float, float]] = []
     for i in range(n):
-        x, y = pos[i]
-        pos[i] = (
-            _clamp(x, 0, MAP_WIDTH - NODE_WIDTH),
-            _clamp(y, 0, MAP_HEIGHT - NODE_HEIGHT),
-        )
+        angle, d = temp.get(i, (0.0, 0))
+        
+        if d == 0:
+            result.append((MAP_WIDTH / 2, MAP_HEIGHT / 2))
+        else:
+            radius = d * LEVEL_SPACING
+            
+            # 👇 ЭТО ЕДИНСТВЕННОЕ ИЗМЕНЕНИЕ.
+            # Мы растягиваем X (синус) сильнее, чем Y (косинус).
+            # Коэффициент 1.25 берется примерно из соотношения сторон 15000/10000 = 1.5.
+            # Я поставил 1.25, чтобы было не слишком сплюснуто, но экономно по вертикали.
+            stretch_x = 1.35
+            stretch_y = 0.75 
+            
+            cx = MAP_WIDTH / 2 + radius * math.sin(angle) * stretch_x
+            cy = MAP_HEIGHT / 2 - radius * math.cos(angle) * stretch_y
+            result.append((cx, cy))
 
-    return pos
+    return result
